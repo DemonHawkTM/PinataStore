@@ -73,8 +73,11 @@ function AppContent() {
           gtag('js', new Date());
           gtag('config', STORE_CONFIG.googleAnalyticsId);
         } else {
+          const currentPath = window.location.pathname + window.location.search + (window.location.hash || '');
           window.gtag('config', STORE_CONFIG.googleAnalyticsId, {
-            page_path: window.location.pathname + window.location.search
+            page_path: currentPath,
+            page_location: window.location.href,
+            page_title: document.title
           });
         }
       } catch (err) {

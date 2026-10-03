@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sparkles, Camera, Layers, Truck, ShieldCheck, MessageCircle, MapPin, Phone, Mail, Clock } from 'lucide-react';
+import { STORE_CONFIG, getWhatsAppUrl } from '../config/storeConfig';
 
 export const Footer = ({ navigate }) => {
   return (
@@ -75,7 +76,7 @@ export const Footer = ({ navigate }) => {
             </p>
             <div className="flex items-center gap-3 pt-2">
               <a 
-                href="https://wa.me/923001234567" 
+                href={getWhatsAppUrl("Hi Pinata Shop Lahore! I would like to inquire about handcrafted piñatas.")} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-colors shadow-sm"
@@ -84,7 +85,7 @@ export const Footer = ({ navigate }) => {
                 <MessageCircle className="w-5 h-5" />
               </a>
               <span className="text-xs text-gray-500 font-medium">
-                Lahore WhatsApp: <strong className="text-gray-800">+92 300 1234567</strong>
+                Lahore WhatsApp: <strong className="text-gray-800">{STORE_CONFIG.phoneDisplay}</strong>
               </span>
             </div>
           </div>
@@ -187,15 +188,15 @@ export const Footer = ({ navigate }) => {
             <ul className="space-y-2 text-xs sm:text-sm text-gray-600 font-body">
               <li className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-brand-pink shrink-0 mt-0.5" />
-                <span>Gulberg III & DHA Delivery Hub, Lahore</span>
+                <span>{STORE_CONFIG.addressDisplay}</span>
               </li>
               <li className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-brand-teal shrink-0" />
-                <span>Mon – Sat: 10:00 AM – 8:00 PM</span>
+                <span>{STORE_CONFIG.operatingHours}</span>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-gray-400 shrink-0" />
-                <span>pinatashoplahore@gmail.com</span>
+                <span>{STORE_CONFIG.email}</span>
               </li>
             </ul>
           </div>

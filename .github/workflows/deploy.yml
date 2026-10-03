@@ -38,6 +38,24 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Generate static entrypoints for 200 OK deep links
+        run: |
+          mkdir -p dist/shop dist/customize dist/contact dist/track dist/cart dist/checkout dist/wishlist
+          cp dist/index.html dist/shop/index.html
+          cp dist/index.html dist/customize/index.html
+          cp dist/index.html dist/contact/index.html
+          cp dist/index.html dist/track/index.html
+          cp dist/index.html dist/cart/index.html
+          cp dist/index.html dist/checkout/index.html
+          cp dist/index.html dist/wishlist/index.html
+          cp dist/index.html dist/shop.html
+          cp dist/index.html dist/customize.html
+          cp dist/index.html dist/contact.html
+          cp dist/index.html dist/track.html
+          cp dist/index.html dist/cart.html
+          cp dist/index.html dist/checkout.html
+          cp dist/index.html dist/wishlist.html
+
       - name: Upload artifact for GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:

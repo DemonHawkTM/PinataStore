@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import { LAHORE_AREAS } from '../data/lahoreAreas';
+import { STORE_CONFIG, getWhatsAppUrl } from '../config/storeConfig';
 import { 
   CheckCircle2, 
   MapPin, 
@@ -72,8 +73,7 @@ export const CheckoutPage = ({ navigate }) => {
 
   // If order is placed, show confirmation screen
   if (confirmedOrder) {
-    const whatsappConfirmText = encodeURIComponent(
-      `🎉 *ORDER CONFIRMATION — LAHORE STUDIO*
+    const rawConfirmMsg = `🎉 *ORDER CONFIRMATION — LAHORE STUDIO*
 Order ID: *${confirmedOrder.id}*
 Customer: ${confirmedOrder.customer.fullName}
 Area: ${confirmedOrder.customer.lahoreArea}
@@ -82,8 +82,7 @@ Total Amount: PKR ${confirmedOrder.total.toLocaleString()}
 Payment Method: ${confirmedOrder.paymentMethod.toUpperCase()}
 Items:
 ${confirmedOrder.items.map(it => `- ${it.title} (${it.quantity}x)`).join('\n')}
-_Please confirm advance deposit details for craft commencement._`
-    );
+_Please confirm advance deposit details for craft commencement._`;
 
     return (
       <div className="py-12 bg-white min-h-screen">
@@ -124,14 +123,14 @@ _Please confirm advance deposit details for craft commencement._`
                 <span>Next steps to begin crafting:</span>
               </p>
               <p>1. Our artisan will WhatsApp you to verify the sketch & colour shades.</p>
-              <p>2. Send 50% advance deposit via JazzCash/EasyPaisa (0300 1234567) or Bank Transfer.</p>
+              <p>2. Send 50% advance deposit via JazzCash/EasyPaisa ({STORE_CONFIG.phoneDisplay}) or Bank Transfer.</p>
               <p>3. We craft your piñata in 5–7 days and deliver to {confirmedOrder.customer.lahoreArea}!</p>
             </div>
 
             {/* Actions */}
             <div className="space-y-3 pt-2">
               <a
-                href={`https://wa.me/923001234567?text=${whatsappConfirmText}`}
+                href={getWhatsAppUrl(rawConfirmMsg)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-colors"

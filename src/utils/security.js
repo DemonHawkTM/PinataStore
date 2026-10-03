@@ -55,33 +55,48 @@ export const compressImage = (file, maxWidth = 600, maxHeight = 600, quality = 0
   });
 };
 
-// 2. Cryptographic SHA-256 Hashing (Native Web Crypto API)
-const SALT = 'lahore_pinata_salt_2026:';
+// 2. High-Strength Key Derivation via PBKDF2-HMAC-SHA256 (100,000 Iterations)
+const PBKDF2_SALT = 'Lahore_Pinata_Craft_Salt_v2_2026';
+
 export async function hashPin(pin) {
   try {
     const encoder = new TextEncoder();
-    const data = encoder.encode(SALT + (pin || '').trim());
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const importedKey = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode((pin || '').trim()),
+      { name: 'PBKDF2' },
+      false,
+      ['deriveBits']
+    );
+    const derived = await crypto.subtle.deriveBits(
+      {
+        name: 'PBKDF2',
+        salt: encoder.encode(PBKDF2_SALT),
+        iterations: 100000,
+        hash: 'SHA-256'
+      },
+      importedKey,
+      256
+    );
+    const hashArray = Array.from(new Uint8Array(derived));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   } catch (err) {
-    console.error('Crypto hashing failed:', err);
+    console.error('PBKDF2 derivation error:', err);
     return null;
   }
 }
 
-// Authorized Master Passkey Hashes (No plaintext credentials stored)
+// Authorized Master Passkey Hashes (PBKDF2 with 100k iterations; resistant to offline brute-force)
 export const AUTHORIZED_PIN_HASHES = new Set([
-  'fe4720eb944a70c25107cf686dca38e74f4cb9eff8c0fb8bc82a0b820d3ef553',
-  '9bb430538618ce44503df589ac48394c66a423532320565ebdd0815b927b4587',
-  '19165ae217eec94c06f65ba5a6fe7973b194c630db2ac800d075943964fea190'
+  '874d5899bed2fe7f01511472a22038032f1c5e290df2fa0df95a8894109e1f85', // Master Studio Passkey
+  'f125f7265a44f74e924627be2750a6264a007d376155f9e57a50f8ce6f61aa2b'  // Secondary Studio Passkey
 ]);
 
-// 3. Cryptographic Session Token & Tamper-Proof Signature
-export async function computeSessionSignature(token, expiresAt) {
+// 3. Cryptographic Session Token & Key-Bound Verification
+export async function computeSessionSignature(token, expiresAt, keyProof) {
   try {
     const encoder = new TextEncoder();
-    const data = encoder.encode(`pinata_sig_salt_2026:${token}:${expiresAt}`);
+    const data = encoder.encode(`pinata_sig_v2:${token}:${expiresAt}:${keyProof || ''}`);
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
@@ -90,19 +105,21 @@ export async function computeSessionSignature(token, expiresAt) {
   }
 }
 
-export async function generateSessionProof() {
+export async function generateSessionProof(keyProof) {
   const array = new Uint8Array(24);
   crypto.getRandomValues(array);
   const token = Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
   const expiresAt = Date.now() + 2 * 60 * 60 * 1000; // 2 hours validity
-  const signature = await computeSessionSignature(token, expiresAt);
-  return { token, expiresAt, signature };
+  const signature = await computeSessionSignature(token, expiresAt, keyProof);
+  return { token, expiresAt, keyProof, signature };
 }
 
 export async function verifySessionProof(session) {
-  if (!session || !session.token || !session.expiresAt || !session.signature) return false;
+  if (!session || !session.token || !session.expiresAt || !session.signature || !session.keyProof) return false;
   if (session.expiresAt <= Date.now()) return false;
-  const expectedSig = await computeSessionSignature(session.token, session.expiresAt);
+  // Verify keyProof belongs to an authorized hash
+  if (!AUTHORIZED_PIN_HASHES.has(session.keyProof)) return false;
+  const expectedSig = await computeSessionSignature(session.token, session.expiresAt, session.keyProof);
   return session.signature === expectedSig;
 }
 

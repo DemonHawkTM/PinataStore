@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { CATEGORIES, OCCASIONS } from '../data/products';
+import { getWhatsAppUrl } from '../config/storeConfig';
 
 export const Navbar = ({ currentRoute, navigate }) => {
   const { cartCount, wishlistCount, setIsCartOpen, setIsSearchOpen } = useStore();
@@ -350,7 +351,7 @@ export const Navbar = ({ currentRoute, navigate }) => {
                 <p className="text-[11px] text-gray-500 mt-0.5">DHA, Gulberg, Bahria Town & all sectors.</p>
               </div>
               <a 
-                href="https://wa.me/923001234567?text=Hi%20Pinata%20Shop!%20I%20want%20to%20order%20a%20pi%C3%B1ata%20in%20Lahore."
+                href={getWhatsAppUrl("Hi Pinata Shop! I want to order a piñata in Lahore.")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full flex items-center justify-center gap-2 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold text-sm shadow-md transition-colors"

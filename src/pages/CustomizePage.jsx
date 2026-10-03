@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { compressImage } from '../utils/security';
+import { STORE_CONFIG, getWhatsAppUrl } from '../config/storeConfig';
 
 export const CustomizePage = ({ navigate }) => {
   const { addToCart, addCustomInquiry } = useStore();
@@ -116,8 +117,7 @@ export const CustomizePage = ({ navigate }) => {
     setTimeout(() => setSuccessToast(false), 4000);
   };
 
-  const whatsappMessage = encodeURIComponent(
-    `🪅 *CUSTOM PIÑATA REQUEST — LAHORE STUDIO*
+  const whatsappMessage = `🪅 *CUSTOM PIÑATA REQUEST — LAHORE STUDIO*
 Name: ${customerName || 'Customer'}
 WhatsApp: ${whatsappNumber || 'N/A'}
 Type: ${pinataType}
@@ -127,8 +127,7 @@ Text on Piece: ${textOnPiece || 'None'}
 Party Date: ${partyDate || 'Within 1-2 weeks'}
 Estimated Quote: PKR ${estimatedTotal.toLocaleString()}
 Notes: ${specialInstructions || 'None'}
-_Please let me know if this party slot is open!_`
-  );
+_Please let me know if this party slot is open!_`;
 
   return (
     <div className="py-8 sm:py-12 bg-white min-h-screen">
@@ -409,7 +408,7 @@ _Please let me know if this party slot is open!_`
                 </button>
 
                 <a
-                  href={`https://wa.me/923001234567?text=${whatsappMessage}`}
+                  href={getWhatsAppUrl(whatsappMessage)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors shadow-sm"
@@ -432,7 +431,7 @@ _Please let me know if this party slot is open!_`
             {/* Lahore Artisan Assurance Card */}
             <div className="bg-brand-pinkSubtle/60 p-4 rounded-2xl border border-pink-100 text-xs text-gray-600 space-y-1">
               <p className="font-semibold text-gray-800">Need immediate help in Lahore?</p>
-              <p>Call or WhatsApp our master artisan at <strong>+92 300 1234567</strong> for same-day sketch approval.</p>
+              <p>Call or WhatsApp our master artisan at <strong>{STORE_CONFIG.phoneDisplay}</strong> for same-day sketch approval.</p>
             </div>
 
           </div>

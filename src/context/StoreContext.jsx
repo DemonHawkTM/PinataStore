@@ -318,7 +318,7 @@ export const StoreProvider = ({ children }) => {
   const loginAdmin = async (pin) => {
     const hash = await hashPin(pin);
     if (hash && AUTHORIZED_PIN_HASHES.has(hash)) {
-      const session = await generateSessionProof();
+      const session = await generateSessionProof(hash);
       sessionStorage.setItem('pinata_admin_session', JSON.stringify(session));
       setIsAdmin(true);
       return { success: true };

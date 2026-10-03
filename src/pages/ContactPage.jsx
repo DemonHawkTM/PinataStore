@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import { MapPin, Phone, MessageCircle, Clock, Mail, Send, CheckCircle2 } from 'lucide-react';
+import { STORE_CONFIG, getWhatsAppUrl } from '../config/storeConfig';
 
 export const ContactPage = ({ navigate }) => {
   const { addContactInquiry } = useStore();
@@ -26,12 +27,8 @@ export const ContactPage = ({ navigate }) => {
   };
 
   const directWaUrl = savedData
-    ? `https://wa.me/923001234567?text=${encodeURIComponent(
-        `🪅 *NEW INQUIRY (${savedData.id})*\nName: ${savedData.name}\nPhone: ${savedData.phone}\nMessage: ${savedData.message}`
-      )}`
-    : `https://wa.me/923001234567?text=${encodeURIComponent(
-        `Hi Pinata Shop Lahore! I have an inquiry regarding a handcrafted piñata.`
-      )}`;
+    ? getWhatsAppUrl(`🪅 *NEW INQUIRY (${savedData.id})*\nName: ${savedData.name}\nPhone: ${savedData.phone}\nMessage: ${savedData.message}`)
+    : getWhatsAppUrl(`Hi Pinata Shop Lahore! I have an inquiry regarding a handcrafted piñata.`);
 
   return (
     <div className="py-8 sm:py-12 bg-white min-h-screen">
@@ -70,7 +67,7 @@ export const ContactPage = ({ navigate }) => {
                 <MapPin className="w-5 h-5 text-brand-pink shrink-0 mt-0.5" />
                 <div>
                   <strong className="block text-gray-900">Workshop & Delivery Hub</strong>
-                  <p className="text-gray-600">Gulberg III & DHA Phase 5 Hub, Lahore, Pakistan</p>
+                  <p className="text-gray-600">{STORE_CONFIG.addressDisplay}</p>
                 </div>
               </div>
 
@@ -78,7 +75,7 @@ export const ContactPage = ({ navigate }) => {
                 <Clock className="w-5 h-5 text-brand-teal shrink-0 mt-0.5" />
                 <div>
                   <strong className="block text-gray-900">Operating Hours</strong>
-                  <p className="text-gray-600">Mon – Sat: 10:00 AM – 8:00 PM</p>
+                  <p className="text-gray-600">{STORE_CONFIG.operatingHours}</p>
                   <p className="text-[11px] text-gray-400">Courier dispatches daily across Lahore</p>
                 </div>
               </div>
@@ -87,7 +84,7 @@ export const ContactPage = ({ navigate }) => {
                 <Phone className="w-5 h-5 text-brand-pink shrink-0 mt-0.5" />
                 <div>
                   <strong className="block text-gray-900">WhatsApp & Call Desk</strong>
-                  <p className="text-gray-600">+92 300 1234567</p>
+                  <p className="text-gray-600">{STORE_CONFIG.phoneDisplay}</p>
                 </div>
               </div>
 
@@ -95,7 +92,7 @@ export const ContactPage = ({ navigate }) => {
                 <Mail className="w-5 h-5 text-brand-teal shrink-0 mt-0.5" />
                 <div>
                   <strong className="block text-gray-900">Email Inquiries</strong>
-                  <p className="text-gray-600">pinatashoplahore@gmail.com</p>
+                  <p className="text-gray-600">{STORE_CONFIG.email}</p>
                 </div>
               </div>
             </div>

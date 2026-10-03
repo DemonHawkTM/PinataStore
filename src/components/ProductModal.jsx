@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Star, Heart, ShoppingBag, MessageCircle, Clock } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { getWhatsAppUrl } from '../config/storeConfig';
 
 export const ProductModal = () => {
   const { activeProductModal, setActiveProductModal, addToCart, toggleWishlist, isInWishlist } = useStore();
@@ -64,15 +65,13 @@ export const ProductModal = () => {
     setActiveProductModal(null);
   };
 
-  const whatsappMessage = encodeURIComponent(
-    `Hi Pinata Shop Lahore! I am interested in ordering:
+  const whatsappMessage = `Hi Pinata Shop Lahore! I am interested in ordering:
 Product: ${product.title}
 Size: ${currentSizeObj.label}
 Quantity: ${quantity}
 Addons: ${includeStick ? 'Buster Stick (+450)' : 'None'}, ${includeBlindfold ? 'Blindfold (+250)' : 'None'}
 Total Price: PKR ${(calculatedUnitPrice * quantity).toLocaleString()}
-Please confirm availability for Lahore delivery.`
-  );
+Please confirm availability for Lahore delivery.`;
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
@@ -259,7 +258,7 @@ Please confirm availability for Lahore delivery.`
             </button>
 
             <a
-              href={`https://wa.me/923001234567?text=${whatsappMessage}`}
+              href={getWhatsAppUrl(whatsappMessage)}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm"

@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Disallow private administrative paths
+Disallow: /PinataStore/admin
+Disallow: /admin
+
+# Canonical XML Sitemap
+Sitemap: https://demonhawktm.github.io/PinataStore/sitemap.xml

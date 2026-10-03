@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Star, Heart, Check, ShoppingBag, MessageCircle, Clock, Ruler, ShieldCheck } from 'lucide-react';
+import { X, Star, Heart, ShoppingBag, MessageCircle, Clock } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
 export const ProductModal = () => {
@@ -13,8 +13,20 @@ export const ProductModal = () => {
   useEffect(() => {
     if (activeProductModal) {
       document.body.style.overflow = 'hidden';
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('product', activeProductModal.slug || activeProductModal.id);
+        window.history.replaceState(null, '', url.toString());
+      } catch (_) {}
     } else {
       document.body.style.overflow = '';
+      try {
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('product')) {
+          url.searchParams.delete('product');
+          window.history.replaceState(null, '', url.toString());
+        }
+      } catch (_) {}
     }
     return () => {
       document.body.style.overflow = '';
@@ -87,7 +99,9 @@ Please confirm availability for Lahore delivery.`
           <div className="relative aspect-square rounded-2xl overflow-hidden shadow-card">
             <img 
               src={product.image} 
-              alt={product.title} 
+              alt={`${product.title} Lahore`} 
+              width="600"
+              height="600"
               className="w-full h-full object-cover"
             />
             {product.badge && (

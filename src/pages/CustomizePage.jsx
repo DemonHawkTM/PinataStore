@@ -136,7 +136,7 @@ _Please let me know if this party slot is open!_`
         
         {/* Breadcrumb */}
         <div className="text-xs text-gray-500 mb-4 flex items-center gap-1.5">
-          <button onClick={() => navigate('home')} className="hover:text-brand-pink transition-colors">Home</button>
+          <a href="/PinataStore/" onClick={(e) => { e.preventDefault(); navigate('home'); }} className="hover:text-brand-pink transition-colors">Home</a>
           <span>/</span>
           <span className="text-gray-900 font-semibold">Custom Studio</span>
         </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Camera, Layers, Truck, ShieldCheck, MessageCircle, MapPin, Phone, Mail, Clock, Lock } from 'lucide-react';
+import { Sparkles, Camera, Layers, Truck, ShieldCheck, MessageCircle, MapPin, Phone, Mail, Clock } from 'lucide-react';
 
 export const Footer = ({ navigate }) => {
   return (
@@ -60,12 +60,16 @@ export const Footer = ({ navigate }) => {
           
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('home')}>
+            <a 
+              href="/PinataStore/" 
+              onClick={(e) => { e.preventDefault(); navigate('home'); }}
+              className="flex items-center gap-2 cursor-pointer inline-block"
+            >
               <span className="text-3xl">🪅</span>
               <span className="font-script text-3xl text-brand-pink font-bold">
                 Pinata Shop
               </span>
-            </div>
+            </a>
             <p className="text-gray-600 text-sm font-body max-w-sm leading-relaxed">
               You think it, we make it. Lahore's dedicated artisanal craft house for handmade custom piñatas and party celebrations.
             </p>
@@ -92,29 +96,49 @@ export const Footer = ({ navigate }) => {
             </h4>
             <ul className="space-y-2 text-sm text-gray-600">
               <li>
-                <button onClick={() => navigate('shop')} className="hover:text-brand-pink transition-colors">
+                <a 
+                  href="/PinataStore/shop" 
+                  onClick={(e) => { e.preventDefault(); navigate('shop'); }}
+                  className="hover:text-brand-pink transition-colors"
+                >
                   All Piñatas
-                </button>
+                </a>
               </li>
               <li>
-                <button onClick={() => navigate('shop', { category: '3d' })} className="hover:text-brand-pink transition-colors">
+                <a 
+                  href="/PinataStore/shop?category=3d" 
+                  onClick={(e) => { e.preventDefault(); navigate('shop', { category: '3d' }); }}
+                  className="hover:text-brand-pink transition-colors"
+                >
                   3D Character Piñatas
-                </button>
+                </a>
               </li>
               <li>
-                <button onClick={() => navigate('shop', { category: 'mini' })} className="hover:text-brand-pink transition-colors">
+                <a 
+                  href="/PinataStore/shop?category=mini" 
+                  onClick={(e) => { e.preventDefault(); navigate('shop', { category: 'mini' }); }}
+                  className="hover:text-brand-pink transition-colors"
+                >
                   Mini Tabletop Piñatas
-                </button>
+                </a>
               </li>
               <li>
-                <button onClick={() => navigate('shop', { category: 'giant' })} className="hover:text-brand-pink transition-colors">
+                <a 
+                  href="/PinataStore/shop?category=giant" 
+                  onClick={(e) => { e.preventDefault(); navigate('shop', { category: 'giant' }); }}
+                  className="hover:text-brand-pink transition-colors"
+                >
                   Giant 3D Piñatas
-                </button>
+                </a>
               </li>
               <li>
-                <button onClick={() => navigate('shop', { category: 'number' })} className="hover:text-brand-pink transition-colors">
+                <a 
+                  href="/PinataStore/shop?category=number" 
+                  onClick={(e) => { e.preventDefault(); navigate('shop', { category: 'number' }); }}
+                  className="hover:text-brand-pink transition-colors"
+                >
                   Number & Letter Piñatas
-                </button>
+                </a>
               </li>
             </ul>
           </div>
@@ -126,21 +150,32 @@ export const Footer = ({ navigate }) => {
             </h4>
             <ul className="space-y-2 text-sm text-gray-600">
               <li>
-                <button onClick={() => navigate('track')} className="hover:text-brand-pink transition-colors">
-                  Track Order (PS-10482)
-                </button>
+                <a 
+                  href="/PinataStore/track" 
+                  onClick={(e) => { e.preventDefault(); navigate('track'); }}
+                  className="hover:text-brand-pink transition-colors"
+                >
+                  Track Order
+                </a>
               </li>
               <li>
-                <button onClick={() => navigate('customize')} className="hover:text-brand-pink transition-colors">
+                <a 
+                  href="/PinataStore/customize" 
+                  onClick={(e) => { e.preventDefault(); navigate('customize'); }}
+                  className="hover:text-brand-pink transition-colors"
+                >
                   Request a Custom Piece
-                </button>
+                </a>
               </li>
               <li>
-                <button onClick={() => navigate('contact')} className="hover:text-brand-pink transition-colors">
+                <a 
+                  href="/PinataStore/contact" 
+                  onClick={(e) => { e.preventDefault(); navigate('contact'); }}
+                  className="hover:text-brand-pink transition-colors"
+                >
                   Contact Workshop
-                </button>
+                </a>
               </li>
-
             </ul>
           </div>
 
@@ -160,7 +195,7 @@ export const Footer = ({ navigate }) => {
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-gray-400 shrink-0" />
-                <span>orders@pinatashop.demo</span>
+                <span>pinatashoplahore@gmail.com</span>
               </li>
             </ul>
           </div>

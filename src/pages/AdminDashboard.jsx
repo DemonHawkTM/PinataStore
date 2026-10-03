@@ -326,8 +326,15 @@ export const AdminDashboard = ({ navigate }) => {
               <p className="text-xs text-gray-500">Updating milestone stages here updates the customer's /track page in real-time.</p>
             </div>
 
-            <div className="space-y-4">
-              {orders.map((order) => (
+            {orders.length === 0 ? (
+              <div className="bg-white rounded-3xl p-12 text-center border border-gray-200 text-gray-500">
+                <ShoppingBag className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                <h3 className="font-bold text-gray-800 text-sm">No customer orders placed yet</h3>
+                <p className="text-xs text-gray-400 mt-1">New customer orders will appear here in real-time as they checkout.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {orders.map((order) => (
                 <div key={order.id} className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-100 gap-3">
                     <div>
@@ -401,17 +408,25 @@ export const AdminDashboard = ({ navigate }) => {
                 </div>
               ))}
             </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 3: CUSTOM STUDIO INQUIRIES & REFERENCE VIEWER */}
+      {activeTab === 'inquiries' && (
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-base font-bold text-gray-900">Custom Studio Reference Submissions</h2>
+            <p className="text-xs text-gray-500">Inspect customer uploaded sketches and respond with a quote via WhatsApp.</p>
           </div>
-        )}
 
-        {/* TAB 3: CUSTOM STUDIO INQUIRIES & REFERENCE VIEWER */}
-        {activeTab === 'inquiries' && (
-          <div className="space-y-4">
-            <div>
-              <h2 className="text-base font-bold text-gray-900">Custom Studio Reference Submissions</h2>
-              <p className="text-xs text-gray-500">Inspect customer uploaded sketches and respond with a quote via WhatsApp.</p>
+          {customInquiries.length === 0 ? (
+            <div className="bg-white rounded-3xl p-12 text-center border border-gray-200 text-gray-500">
+              <Sparkles className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+              <h3 className="font-bold text-gray-800 text-sm">No custom inquiries submitted yet</h3>
+              <p className="text-xs text-gray-400 mt-1">Customer reference photos and bespoke requests from the Custom Studio will appear here.</p>
             </div>
-
+          ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {customInquiries.map((inq) => (
                 <div key={inq.id} className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm space-y-4 flex flex-col justify-between">
@@ -476,6 +491,7 @@ export const AdminDashboard = ({ navigate }) => {
                 </div>
               ))}
             </div>
+          )}
 
             {/* General Contact Form Inquiries */}
             {contactInquiries && contactInquiries.length > 0 && (

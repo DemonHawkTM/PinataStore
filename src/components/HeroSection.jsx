@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import confetti from 'canvas-confetti';
-import { Sparkles, ArrowRight, Star, Heart, Clock } from 'lucide-react';
+import { Sparkles, ArrowRight, Star } from 'lucide-react';
 
 export const HeroSection = ({ navigate }) => {
   const triggerConfetti = () => {
@@ -32,14 +32,17 @@ export const HeroSection = ({ navigate }) => {
               <span>Handmade · Custom · Lahore Party-Ready</span>
             </div>
 
-            {/* Main Headline with Dancing Script accent */}
+            {/* Main SEO Optimized Headline with Proper Heading Order */}
             <div className="space-y-2">
-              <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-gray-800 uppercase">
+              <p className="text-xl sm:text-2xl font-extrabold tracking-tight text-gray-800 uppercase">
                 It's Your Party...
-              </h2>
+              </p>
               <h1 className="font-script text-5xl sm:text-6xl md:text-7xl font-bold bg-gradient-to-r from-brand-pink via-pink-600 to-brand-teal bg-clip-text text-transparent leading-none py-1">
-                We Make It Special!
+                Custom Handmade Piñatas in Lahore
               </h1>
+              <h2 className="text-base sm:text-lg text-gray-600 font-normal">
+                Over 1,000+ custom 3D & 2D party themes sculpted and delivered across Lahore.
+              </h2>
             </div>
 
             {/* Subtitle */}
@@ -47,23 +50,25 @@ export const HeroSection = ({ navigate }) => {
               Custom & pre-made handcrafted piñatas — sculpted in Lahore around your character theme, colours, and party date. <strong className="text-gray-800 font-semibold">You think it. We make it.</strong>
             </p>
 
-            {/* Action Buttons */}
+            {/* Action Buttons: Semantic Crawlable Anchors */}
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-2">
-              <button 
-                onClick={() => navigate('customize')}
+              <a 
+                href="/PinataStore/customize"
+                onClick={(e) => { e.preventDefault(); navigate('customize'); }}
                 className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-brand-pink to-pink-600 hover:from-brand-pinkHover hover:to-pink-700 text-white rounded-full font-bold text-base shadow-brand hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2"
               >
                 <span>Customize Now</span>
                 <Sparkles className="w-5 h-5" />
-              </button>
+              </a>
 
-              <button 
-                onClick={() => navigate('shop')}
+              <a 
+                href="/PinataStore/shop"
+                onClick={(e) => { e.preventDefault(); navigate('shop'); }}
                 className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-pink-50 text-brand-teal hover:text-brand-tealDark border-2 border-brand-teal rounded-full font-bold text-base transition-all duration-300 transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
               >
                 <span>Browse Piñatas</span>
                 <ArrowRight className="w-5 h-5" />
-              </button>
+              </a>
             </div>
 
             {/* Trust Stats Bar */}
@@ -109,10 +114,13 @@ export const HeroSection = ({ navigate }) => {
             >
               {/* Card 1: Pink Guitar (Tilted Left) */}
               <div className="absolute left-0 top-12 w-44 sm:w-52 bg-white rounded-3xl p-3 shadow-card border border-pink-100 transform -rotate-12 group-hover:-rotate-16 transition-all duration-300 animate-float-reverse z-10">
-                <div className="w-full h-44 sm:h-52 rounded-2xl overflow-hidden bg-pink-50 relative">
+                <div className="w-full h-44 sm:h-52 rounded-2xl overflow-hidden bg-pink-50 relative aspect-square">
                   <img 
                     src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&auto=format&fit=crop&q=80" 
-                    alt="Pink Guitar Piñata" 
+                    alt="Pink Guitar Piñata Lahore" 
+                    width="500"
+                    height="500"
+                    loading="lazy"
                     className="w-full h-full object-cover"
                   />
                   <span className="absolute top-2 left-2 bg-brand-pink text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
@@ -127,10 +135,13 @@ export const HeroSection = ({ navigate }) => {
 
               {/* Card 2: Centerpiece Unicorn Dream (Standing Hero Front) */}
               <div className="absolute left-1/2 -translate-x-1/2 top-4 w-48 sm:w-56 bg-white rounded-3xl p-3.5 shadow-2xl border-2 border-brand-pink/30 transform group-hover:scale-105 transition-all duration-300 animate-float z-30">
-                <div className="w-full h-52 sm:h-60 rounded-2xl overflow-hidden bg-pink-50 relative">
+                <div className="w-full h-52 sm:h-60 rounded-2xl overflow-hidden bg-pink-50 relative aspect-square">
                   <img 
                     src="https://images.unsplash.com/photo-1513151233558-d860c5398176?w=500&auto=format&fit=crop&q=80" 
-                    alt="Unicorn Dream Piñata" 
+                    alt="Unicorn Dream Piñata Lahore" 
+                    width="500"
+                    height="500"
+                    fetchPriority="high"
                     className="w-full h-full object-cover"
                   />
                   <span className="absolute top-2.5 left-2.5 bg-brand-pink text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
@@ -145,10 +156,13 @@ export const HeroSection = ({ navigate }) => {
 
               {/* Card 3: Number 1 Crown (Tilted Right) */}
               <div className="absolute right-0 top-14 w-44 sm:w-52 bg-white rounded-3xl p-3 shadow-card border border-pink-100 transform rotate-12 group-hover:rotate-16 transition-all duration-300 animate-float-reverse z-20">
-                <div className="w-full h-44 sm:h-52 rounded-2xl overflow-hidden bg-sky-50 relative">
+                <div className="w-full h-44 sm:h-52 rounded-2xl overflow-hidden bg-sky-50 relative aspect-square">
                   <img 
                     src="https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=500&auto=format&fit=crop&q=80" 
-                    alt="Number 1 Crown Piñata" 
+                    alt="Number 1 Crown Piñata Lahore" 
+                    width="500"
+                    height="500"
+                    loading="lazy"
                     className="w-full h-full object-cover"
                   />
                   <span className="absolute top-2 left-2 bg-brand-teal text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">

@@ -14,7 +14,7 @@ export const CartPage = ({ navigate }) => {
         
         {/* Breadcrumb */}
         <div className="text-xs text-gray-500 mb-4 flex items-center gap-1.5">
-          <button onClick={() => navigate('home')} className="hover:text-brand-pink transition-colors">Home</button>
+          <a href="/PinataStore/" onClick={(e) => { e.preventDefault(); navigate('home'); }} className="hover:text-brand-pink transition-colors">Home</a>
           <span>/</span>
           <span className="text-gray-900 font-semibold">Cart</span>
         </div>
@@ -36,13 +36,14 @@ export const CartPage = ({ navigate }) => {
             <p className="text-gray-500 text-xs sm:text-sm max-w-sm mx-auto">
               Add a ready design from our collection or build a custom piece in the studio.
             </p>
-            <button
-              onClick={() => navigate('shop')}
+            <a
+              href="/PinataStore/shop"
+              onClick={(e) => { e.preventDefault(); navigate('shop'); }}
               className="px-6 py-3 bg-brand-pink hover:bg-brand-pinkHover text-white text-xs font-bold rounded-full shadow-md transition-all inline-flex items-center gap-2"
             >
               <span>Continue Shopping</span>
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </a>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">

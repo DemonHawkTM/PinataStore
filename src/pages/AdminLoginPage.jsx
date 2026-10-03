@@ -1,35 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
-import { Lock, ShieldAlert, ArrowRight, ShieldCheck, Clock } from 'lucide-react';
+import { Lock, ShieldAlert, ArrowRight, Clock } from 'lucide-react';
+import { getAdminLockoutState, recordAdminFailedAttempt, resetAdminLockout } from '../utils/security';
 
 export const AdminLoginPage = ({ navigate }) => {
   const { loginAdmin } = useStore();
   const [pin, setPin] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [failedAttempts, setFailedAttempts] = useState(0);
-  const [lockoutSeconds, setLockoutSeconds] = useState(0);
+  
+  // Rate Limiting & Lockout persisted across page refreshes (MED-04)
+  const [lockoutState, setLockoutState] = useState(getAdminLockoutState);
+  const { failedAttempts, lockoutRemainingSeconds } = lockoutState;
 
-  // Rate Limiting Countdown
   useEffect(() => {
     let timer;
-    if (lockoutSeconds > 0) {
+    if (lockoutRemainingSeconds > 0) {
       timer = setInterval(() => {
-        setLockoutSeconds(prev => {
-          if (prev <= 1) {
-            setFailedAttempts(0);
-            return 0;
-          }
-          return prev - 1;
-        });
+        setLockoutState(getAdminLockoutState());
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [lockoutSeconds]);
+  }, [lockoutRemainingSeconds]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (lockoutSeconds > 0) return;
+    if (lockoutRemainingSeconds > 0) return;
 
     setIsLoading(true);
     setErrorMessage('');
@@ -37,15 +33,15 @@ export const AdminLoginPage = ({ navigate }) => {
     try {
       const res = await loginAdmin(pin.trim());
       if (res.success) {
-        navigate('admin-dashboard');
+        resetAdminLockout();
+        navigate('admin');
       } else {
-        const nextAttempts = failedAttempts + 1;
-        setFailedAttempts(nextAttempts);
-        if (nextAttempts >= 5) {
-          setLockoutSeconds(60);
-          setErrorMessage('Too many failed attempts. Security lockout active for 60s.');
+        const nextState = recordAdminFailedAttempt();
+        setLockoutState(nextState);
+        if (nextState.lockoutRemainingSeconds > 0) {
+          setErrorMessage(`Too many failed attempts. Security lockout active for ${nextState.lockoutRemainingSeconds}s.`);
         } else {
-          setErrorMessage(`Access Denied: Invalid passkey (${5 - nextAttempts} attempts remaining).`);
+          setErrorMessage(`Access Denied: Invalid passkey (${5 - nextState.failedAttempts} attempts remaining).`);
         }
       }
     } catch (err) {
@@ -71,7 +67,7 @@ export const AdminLoginPage = ({ navigate }) => {
             Studio Security Gate
           </h1>
           <p className="text-xs text-gray-500 mt-1">
-            Authorized Lahore Studio personnel only. Access is cryptographically verified and logged.
+            Authorized Lahore Studio personnel only. Access is cryptographically verified and monitored.
           </p>
         </div>
 
@@ -81,7 +77,7 @@ export const AdminLoginPage = ({ navigate }) => {
               type="password"
               placeholder="Enter Master Passkey"
               value={pin}
-              disabled={lockoutSeconds > 0 || isLoading}
+              disabled={lockoutRemainingSeconds > 0 || isLoading}
               onChange={(e) => {
                 setPin(e.target.value);
                 setErrorMessage('');
@@ -99,10 +95,10 @@ export const AdminLoginPage = ({ navigate }) => {
             </div>
           )}
 
-          {lockoutSeconds > 0 ? (
+          {lockoutRemainingSeconds > 0 ? (
             <div className="p-3 bg-amber-50 text-amber-800 rounded-xl text-xs font-semibold flex items-center justify-center gap-2">
               <Clock className="w-4 h-4 text-amber-600 animate-spin" />
-              <span>Locked for {lockoutSeconds} seconds</span>
+              <span>Locked for {lockoutRemainingSeconds} seconds</span>
             </div>
           ) : (
             <button
@@ -116,12 +112,13 @@ export const AdminLoginPage = ({ navigate }) => {
           )}
         </form>
 
-        <button
-          onClick={() => navigate('home')}
-          className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+        <a
+          href="/PinataStore/"
+          onClick={(e) => { e.preventDefault(); navigate('home'); }}
+          className="text-xs text-gray-400 hover:text-gray-600 transition-colors inline-block"
         >
           ← Return to Public Storefront
-        </button>
+        </a>
 
       </div>
     </div>

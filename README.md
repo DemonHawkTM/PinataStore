@@ -13,24 +13,27 @@ A modern, mobile-first, high-conversion eCommerce and bespoke Custom Studio plat
   - 8-color interactive swatch picker.
   - Custom text personalization on the piece.
   - Event date calendar picker enforcing a 5-day artisanal lead time.
-  - Drag-and-drop reference photo/sketch uploader with live thumbnail preview.
-  - Dual submission actions: **"Add custom order to cart"** and **"Send on WhatsApp"** (+92 300 1234567).
+  - Drag-and-drop reference photo/sketch uploader with live thumbnail preview and client-side compression.
+  - Dual submission actions: **"Add custom order to cart"** and **"Send on WhatsApp"**.
 - **Cart & Slide-Over Drawer (`/cart`)**:
-  - LocalStorage persistence across page reloads.
+  - Customer-isolated LocalStorage persistence across page reloads.
   - Lahore Free Delivery progress indicator (*Free over PKR 5,000, flat PKR 250 across Lahore otherwise*).
 - **Lahore Doorstep Checkout (`/checkout`)**:
   - Area selector covering all major Lahore sectors (*DHA Phases 1–9, Gulberg, Bahria Town, Cantt, Johar Town, Model Town, etc.*).
   - Payment options: Cash on Delivery (50% deposit + 50% on doorstep delivery), JazzCash / EasyPaisa, and Direct Bank Transfer.
 - **Order Tracking Timeline (`/track`)**:
-  - Lookup by Order ID with pre-seeded demo order: **`PS-10482`** with **`sara@example.com`**.
+  - Dual-factor verification protecting customer order privacy and delivery details.
   - 5-stage visual progress stepper (*Placed → 50% Deposit Received → In Crafting → Dispatched → Delivered*).
-- **Secret Admin Back-Office Portal (`/admin`)**:
-  - Protected PIN access gate (`PIN: 1234` or `admin123`).
+- **Admin Back-Office Portal (`/admin`)**:
+  - Protected master authentication gate with persistent rate limiting.
   - 1-Click "In Stock" / "Out of Stock" inventory toggles that instantly update the live storefront.
   - "Add New Piñata" modal with photo upload, PKR pricing, dimensions, and badges.
   - Order milestone manager with real-time synchronization to the customer's `/track` page.
   - Custom studio photo inquiry viewer with 1-click WhatsApp quick-reply.
-- **Technical SEO**: Schema.org `LocalBusiness` & `Product` structured data, OpenGraph WhatsApp preview cards.
+- **Technical & Local SEO**:
+  - Schema.org `LocalBusiness` and `ItemList`/`Product` structured data.
+  - Canonical link tags, XML sitemap (`sitemap.xml`), and `robots.txt`.
+  - Dynamic page metadata and social OpenGraph / Twitter Cards.
 
 ---
 

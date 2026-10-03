@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, Heart, Plus, MessageCircle, AlertCircle } from 'lucide-react';
+import { Star, Heart, Plus, AlertCircle } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
 export const ProductCard = ({ product }) => {
@@ -7,6 +7,7 @@ export const ProductCard = ({ product }) => {
   const wishlisted = isInWishlist(product.id);
 
   const handleQuickAdd = (e) => {
+    e.preventDefault();
     e.stopPropagation();
     if (product.inStock) {
       addToCart(product, 1, { variant: "Normal (45-50cm) · Standard" });
@@ -14,22 +15,31 @@ export const ProductCard = ({ product }) => {
   };
 
   const handleWishlistToggle = (e) => {
+    e.preventDefault();
     e.stopPropagation();
     toggleWishlist(product.id);
   };
 
+  const productUrl = `/PinataStore/shop?product=${product.slug || product.id}`;
+
   return (
-    <div 
-      onClick={() => setActiveProductModal(product)}
-      className="group bg-white rounded-3xl p-3.5 sm:p-4 border border-pink-100 shadow-card hover:shadow-card-hover transition-all duration-300 flex flex-col justify-between cursor-pointer relative"
+    <a 
+      href={productUrl}
+      onClick={(e) => {
+        e.preventDefault();
+        setActiveProductModal(product);
+      }}
+      className="group bg-white rounded-3xl p-3.5 sm:p-4 border border-pink-100 shadow-card hover:shadow-card-hover transition-all duration-300 flex flex-col justify-between cursor-pointer relative block text-left"
     >
       {/* Top Image Container */}
       <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-brand-pinkSubtle mb-3.5">
         <img 
           src={product.image} 
-          alt={product.title} 
-          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${!product.inStock ? 'opacity-60 grayscale-[30%]' : ''}`}
+          alt={`${product.title} Lahore`} 
+          width="600"
+          height="600"
           loading="lazy"
+          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${!product.inStock ? 'opacity-60 grayscale-[30%]' : ''}`}
         />
 
         {/* Status Badge */}
@@ -53,8 +63,9 @@ export const ProductCard = ({ product }) => {
 
         {/* Wishlist Button */}
         <button
+          type="button"
           onClick={handleWishlistToggle}
-          className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-colors ${
+          className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-colors z-10 ${
             wishlisted ? 'bg-pink-50 text-brand-pink' : 'bg-white/80 text-gray-500 hover:text-brand-pink'
           }`}
           aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
@@ -95,8 +106,9 @@ export const ProductCard = ({ product }) => {
 
         {product.inStock ? (
           <button
+            type="button"
             onClick={handleQuickAdd}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-brand-pink hover:bg-brand-pinkHover text-white flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-all"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-brand-pink hover:bg-brand-pinkHover text-white flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-all z-10"
             aria-label={`Add ${product.title} to cart`}
             title="Quick add to cart"
           >
@@ -108,6 +120,6 @@ export const ProductCard = ({ product }) => {
           </span>
         )}
       </div>
-    </div>
+    </a>
   );
 };

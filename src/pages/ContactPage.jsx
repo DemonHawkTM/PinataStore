@@ -39,7 +39,7 @@ export const ContactPage = ({ navigate }) => {
         
         {/* Breadcrumb */}
         <div className="text-xs text-gray-500 mb-4 flex items-center gap-1.5">
-          <button onClick={() => navigate('home')} className="hover:text-brand-pink transition-colors">Home</button>
+          <a href="/PinataStore/" onClick={(e) => { e.preventDefault(); navigate('home'); }} className="hover:text-brand-pink transition-colors">Home</a>
           <span>/</span>
           <span className="text-gray-900 font-semibold">Contact</span>
         </div>
@@ -95,7 +95,7 @@ export const ContactPage = ({ navigate }) => {
                 <Mail className="w-5 h-5 text-brand-teal shrink-0 mt-0.5" />
                 <div>
                   <strong className="block text-gray-900">Email Inquiries</strong>
-                  <p className="text-gray-600">orders@pinatashop.demo</p>
+                  <p className="text-gray-600">pinatashoplahore@gmail.com</p>
                 </div>
               </div>
             </div>

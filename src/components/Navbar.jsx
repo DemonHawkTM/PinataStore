@@ -9,16 +9,13 @@ import {
   ChevronDown, 
   Sparkles, 
   MessageCircle, 
-  Layers, 
-  Calendar,
-  Lock,
   ArrowRight
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { CATEGORIES, OCCASIONS } from '../data/products';
 
 export const Navbar = ({ currentRoute, navigate }) => {
-  const { cartCount, wishlistCount, setIsCartOpen, setIsSearchOpen, isAdmin } = useStore();
+  const { cartCount, wishlistCount, setIsCartOpen, setIsSearchOpen } = useStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [shopDropdownOpen, setShopDropdownOpen] = useState(false);
   const [occasionDropdownOpen, setOccasionDropdownOpen] = useState(false);
@@ -49,7 +46,11 @@ export const Navbar = ({ currentRoute, navigate }) => {
           <div className="flex items-center justify-between h-16 sm:h-20">
             
             {/* Brand Logo (Left) */}
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavClick('home')}>
+            <a 
+              href="/PinataStore/" 
+              onClick={(e) => { e.preventDefault(); handleNavClick('home'); }}
+              className="flex items-center gap-2 cursor-pointer select-none"
+            >
               <span className="text-2xl sm:text-3xl">🪅</span>
               <div className="flex flex-col">
                 <span className="font-script text-2xl sm:text-3xl text-brand-pink font-bold leading-none tracking-tight">
@@ -59,18 +60,19 @@ export const Navbar = ({ currentRoute, navigate }) => {
                   Lahore Studio
                 </span>
               </div>
-            </div>
+            </a>
 
-            {/* Desktop Navigation (Center) */}
+            {/* Desktop Navigation (Center) - Semantic Anchor Tags for Crawler Discoverability */}
             <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
-              <button 
-                onClick={() => handleNavClick('home')}
+              <a 
+                href="/PinataStore/"
+                onClick={(e) => { e.preventDefault(); handleNavClick('home'); }}
                 className={`px-3 py-2 text-sm font-medium rounded-full transition-colors ${
                   currentRoute === 'home' ? 'text-brand-pink font-semibold bg-brand-pinkLight' : 'text-gray-700 hover:text-brand-pink hover:bg-pink-50'
                 }`}
               >
                 Home
-              </button>
+              </a>
 
               {/* Shop Piñatas Dropdown */}
               <div 
@@ -78,15 +80,16 @@ export const Navbar = ({ currentRoute, navigate }) => {
                 onMouseEnter={() => setShopDropdownOpen(true)}
                 onMouseLeave={() => setShopDropdownOpen(false)}
               >
-                <button 
-                  onClick={() => handleNavClick('shop')}
+                <a 
+                  href="/PinataStore/shop"
+                  onClick={(e) => { e.preventDefault(); handleNavClick('shop'); }}
                   className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-full transition-colors ${
                     currentRoute === 'shop' ? 'text-brand-pink font-semibold bg-brand-pinkLight' : 'text-gray-700 hover:text-brand-pink hover:bg-pink-50'
                   }`}
                 >
                   <span>Shop Piñatas</span>
                   <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${shopDropdownOpen ? 'rotate-180 text-brand-pink' : ''}`} />
-                </button>
+                </a>
 
                 {shopDropdownOpen && (
                   <div className="absolute top-full left-0 w-64 bg-white rounded-2xl shadow-xl border border-pink-100 py-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
@@ -94,14 +97,15 @@ export const Navbar = ({ currentRoute, navigate }) => {
                       Browse Categories
                     </div>
                     {CATEGORIES.map(cat => (
-                      <button
+                      <a
                         key={cat.id}
-                        onClick={() => handleNavClick('shop', { category: cat.id })}
-                        className="w-full text-left px-3.5 py-2 text-sm text-gray-700 hover:bg-brand-pinkLight hover:text-brand-pink font-medium flex items-center justify-between transition-colors"
+                        href={`/PinataStore/shop?category=${cat.id}`}
+                        onClick={(e) => { e.preventDefault(); handleNavClick('shop', { category: cat.id }); }}
+                        className="w-full text-left px-3.5 py-2 text-sm text-gray-700 hover:bg-brand-pinkLight hover:text-brand-pink font-medium flex items-center justify-between transition-colors block"
                       >
                         <span>{cat.label}</span>
                         <span className="text-xs text-brand-teal font-normal">→</span>
-                      </button>
+                      </a>
                     ))}
                   </div>
                 )}
@@ -113,13 +117,14 @@ export const Navbar = ({ currentRoute, navigate }) => {
                 onMouseEnter={() => setOccasionDropdownOpen(true)}
                 onMouseLeave={() => setOccasionDropdownOpen(false)}
               >
-                <button 
-                  onClick={() => handleNavClick('shop')}
+                <a 
+                  href="/PinataStore/shop"
+                  onClick={(e) => { e.preventDefault(); handleNavClick('shop'); }}
                   className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 hover:text-brand-pink hover:bg-pink-50 rounded-full transition-colors"
                 >
                   <span>Occasions</span>
                   <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${occasionDropdownOpen ? 'rotate-180 text-brand-pink' : ''}`} />
-                </button>
+                </a>
 
                 {occasionDropdownOpen && (
                   <div className="absolute top-full left-0 w-60 bg-white rounded-2xl shadow-xl border border-pink-100 py-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
@@ -127,48 +132,52 @@ export const Navbar = ({ currentRoute, navigate }) => {
                       Celebrate in Lahore
                     </div>
                     {OCCASIONS.map(occ => (
-                      <button
+                      <a
                         key={occ.id}
-                        onClick={() => handleNavClick('shop', { occasion: occ.id })}
-                        className="w-full text-left px-3.5 py-2 text-sm text-gray-700 hover:bg-brand-pinkLight hover:text-brand-pink font-medium transition-colors"
+                        href={`/PinataStore/shop?occasion=${occ.id}`}
+                        onClick={(e) => { e.preventDefault(); handleNavClick('shop', { occasion: occ.id }); }}
+                        className="w-full text-left px-3.5 py-2 text-sm text-gray-700 hover:bg-brand-pinkLight hover:text-brand-pink font-medium transition-colors block"
                       >
                         {occ.label}
-                      </button>
+                      </a>
                     ))}
                   </div>
                 )}
               </div>
 
-              <button 
-                onClick={() => handleNavClick('customize')}
+              <a 
+                href="/PinataStore/customize"
+                onClick={(e) => { e.preventDefault(); handleNavClick('customize'); }}
                 className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-full transition-colors ${
                   currentRoute === 'customize' ? 'text-brand-pink font-semibold bg-brand-pinkLight' : 'text-gray-700 hover:text-brand-pink hover:bg-pink-50'
                 }`}
               >
                 <Sparkles className="w-4 h-4 text-brand-pink" />
                 <span>Custom Studio</span>
-              </button>
+              </a>
 
-              <button 
-                onClick={() => handleNavClick('track')}
+              <a 
+                href="/PinataStore/track"
+                onClick={(e) => { e.preventDefault(); handleNavClick('track'); }}
                 className={`px-3 py-2 text-sm font-medium rounded-full transition-colors ${
                   currentRoute === 'track' ? 'text-brand-pink font-semibold bg-brand-pinkLight' : 'text-gray-700 hover:text-brand-pink hover:bg-pink-50'
                 }`}
               >
                 Track Order
-              </button>
+              </a>
 
-              <button 
-                onClick={() => handleNavClick('contact')}
+              <a 
+                href="/PinataStore/contact"
+                onClick={(e) => { e.preventDefault(); handleNavClick('contact'); }}
                 className={`px-3 py-2 text-sm font-medium rounded-full transition-colors ${
                   currentRoute === 'contact' ? 'text-brand-pink font-semibold bg-brand-pinkLight' : 'text-gray-700 hover:text-brand-pink hover:bg-pink-50'
                 }`}
               >
                 Contact
-              </button>
+              </a>
             </nav>
 
-            {/* Right Action Utilities (Search, Wishlist, Cart, Hamburger on Mobile) */}
+            {/* Right Action Utilities (Search, Wishlist, Cart, Mobile Menu) */}
             <div className="flex items-center gap-1 sm:gap-2">
               {/* Search Icon */}
               <button 
@@ -180,9 +189,10 @@ export const Navbar = ({ currentRoute, navigate }) => {
               </button>
 
               {/* Wishlist Icon */}
-              <button 
-                onClick={() => handleNavClick('wishlist')}
-                className="relative p-2 text-gray-700 hover:text-brand-pink hover:bg-pink-50 rounded-full transition-colors"
+              <a 
+                href="/PinataStore/wishlist"
+                onClick={(e) => { e.preventDefault(); handleNavClick('wishlist'); }}
+                className="relative p-2 text-gray-700 hover:text-brand-pink hover:bg-pink-50 rounded-full transition-colors inline-block"
                 aria-label="View wishlist"
               >
                 <Heart className="w-5 h-5" />
@@ -191,7 +201,7 @@ export const Navbar = ({ currentRoute, navigate }) => {
                     {wishlistCount}
                   </span>
                 )}
-              </button>
+              </a>
 
               {/* Shopping Cart Icon */}
               <button 
@@ -207,8 +217,7 @@ export const Navbar = ({ currentRoute, navigate }) => {
                 )}
               </button>
 
-
-              {/* Mobile Hamburger Menu Trigger (Far Right - Matches Inspiration Screenshot) */}
+              {/* Mobile Hamburger Menu Trigger */}
               <div className="flex items-center lg:hidden ml-1">
                 <button 
                   onClick={() => setMobileMenuOpen(true)}
@@ -225,7 +234,7 @@ export const Navbar = ({ currentRoute, navigate }) => {
         </div>
       </header>
 
-      {/* Mobile Drawer Navigation (Rendered in Portal directly to document.body for 100% viewport coverage) */}
+      {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[100] lg:hidden overflow-hidden">
           {/* Backdrop with fade-in */}
@@ -234,17 +243,21 @@ export const Navbar = ({ currentRoute, navigate }) => {
             onClick={() => setMobileMenuOpen(false)}
           />
 
-          {/* Drawer Panel (Sliding in from Right, Full Height 100dvh) */}
+          {/* Drawer Panel */}
           <div className="fixed inset-y-0 right-0 w-full max-w-xs sm:max-w-sm bg-white shadow-2xl z-10 flex flex-col justify-between h-[100dvh] overflow-y-auto animate-in slide-in-from-right duration-300 ease-out">
             
             {/* Top Header */}
             <div className="p-6 border-b border-pink-100 flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2">
+              <a 
+                href="/PinataStore/"
+                onClick={(e) => { e.preventDefault(); handleNavClick('home'); }}
+                className="flex items-center gap-2"
+              >
                 <span className="text-2xl">🪅</span>
                 <span className="font-script text-2xl text-brand-pink font-bold">
                   Pinata Shop
                 </span>
-              </div>
+              </a>
               <button 
                 onClick={() => setMobileMenuOpen(false)}
                 className="p-2 rounded-full text-gray-500 hover:text-brand-pink hover:bg-pink-50 transition-colors"
@@ -256,28 +269,31 @@ export const Navbar = ({ currentRoute, navigate }) => {
 
             {/* Menu Links */}
             <div className="p-6 space-y-2 flex-1 overflow-y-auto">
-              <button 
-                onClick={() => handleNavClick('home')}
+              <a 
+                href="/PinataStore/"
+                onClick={(e) => { e.preventDefault(); handleNavClick('home'); }}
                 className={`w-full text-left px-4 py-3 rounded-2xl font-semibold text-sm transition-colors flex items-center justify-between ${
                   currentRoute === 'home' ? 'bg-pink-100/70 text-brand-pink' : 'text-gray-800 hover:bg-pink-50 hover:text-brand-pink'
                 }`}
               >
                 <span>Home</span>
                 <ArrowRight className="w-4 h-4 opacity-50" />
-              </button>
+              </a>
 
-              <button 
-                onClick={() => handleNavClick('shop')}
+              <a 
+                href="/PinataStore/shop"
+                onClick={(e) => { e.preventDefault(); handleNavClick('shop'); }}
                 className={`w-full text-left px-4 py-3 rounded-2xl font-semibold text-sm transition-colors flex items-center justify-between ${
                   currentRoute === 'shop' ? 'bg-pink-100/70 text-brand-pink' : 'text-gray-800 hover:bg-pink-50 hover:text-brand-pink'
                 }`}
               >
                 <span>Shop All Piñatas</span>
                 <span className="text-xs bg-pink-100 text-brand-pink font-bold px-2 py-0.5 rounded-full">Catalog</span>
-              </button>
+              </a>
 
-              <button 
-                onClick={() => handleNavClick('customize')}
+              <a 
+                href="/PinataStore/customize"
+                onClick={(e) => { e.preventDefault(); handleNavClick('customize'); }}
                 className={`w-full text-left px-4 py-3 rounded-2xl font-bold text-sm transition-colors flex items-center justify-between ${
                   currentRoute === 'customize' ? 'bg-brand-pink text-white shadow-brand' : 'bg-brand-pinkLight text-brand-pink hover:bg-pink-100'
                 }`}
@@ -287,20 +303,22 @@ export const Navbar = ({ currentRoute, navigate }) => {
                   <span>Custom Piñata Studio</span>
                 </div>
                 <span className="text-[10px] uppercase tracking-wider font-extrabold bg-white/30 px-2 py-0.5 rounded-full">Bespoke</span>
-              </button>
+              </a>
 
-              <button 
-                onClick={() => handleNavClick('track')}
+              <a 
+                href="/PinataStore/track"
+                onClick={(e) => { e.preventDefault(); handleNavClick('track'); }}
                 className={`w-full text-left px-4 py-3 rounded-2xl font-semibold text-sm transition-colors flex items-center justify-between ${
                   currentRoute === 'track' ? 'bg-pink-100/70 text-brand-pink' : 'text-gray-800 hover:bg-pink-50 hover:text-brand-pink'
                 }`}
               >
-                <span>Track Order (PS-10482)</span>
+                <span>Track Order</span>
                 <ArrowRight className="w-4 h-4 opacity-50" />
-              </button>
+              </a>
 
-              <button 
-                onClick={() => handleNavClick('wishlist')}
+              <a 
+                href="/PinataStore/wishlist"
+                onClick={(e) => { e.preventDefault(); handleNavClick('wishlist'); }}
                 className={`w-full text-left px-4 py-3 rounded-2xl font-semibold text-sm transition-colors flex items-center justify-between ${
                   currentRoute === 'wishlist' ? 'bg-pink-100/70 text-brand-pink' : 'text-gray-800 hover:bg-pink-50 hover:text-brand-pink'
                 }`}
@@ -311,19 +329,18 @@ export const Navbar = ({ currentRoute, navigate }) => {
                     {wishlistCount}
                   </span>
                 )}
-              </button>
+              </a>
 
-              <button 
-                onClick={() => handleNavClick('contact')}
+              <a 
+                href="/PinataStore/contact"
+                onClick={(e) => { e.preventDefault(); handleNavClick('contact'); }}
                 className={`w-full text-left px-4 py-3 rounded-2xl font-semibold text-sm transition-colors flex items-center justify-between ${
                   currentRoute === 'contact' ? 'bg-pink-100/70 text-brand-pink' : 'text-gray-800 hover:bg-pink-50 hover:text-brand-pink'
                 }`}
               >
                 <span>Contact & Lahore Studio</span>
                 <ArrowRight className="w-4 h-4 opacity-50" />
-              </button>
-
-
+              </a>
             </div>
 
             {/* Bottom Lahore Assistance Box */}

@@ -55,20 +55,24 @@ export const OccasionGrid = ({ navigate }) => {
           </p>
         </div>
 
-        {/* Occasion Cards */}
+        {/* Occasion Cards - Crawlable Anchor Elements */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {occasions.map((occ) => {
             const Icon = occ.icon;
             return (
-              <div
+              <a
                 key={occ.id}
-                onClick={() => navigate('shop', { occasion: occ.id })}
-                className="group relative rounded-3xl overflow-hidden h-64 shadow-card hover:shadow-card-hover cursor-pointer transition-all duration-300 transform hover:-translate-y-1"
+                href={`/PinataStore/shop?occasion=${occ.id}`}
+                onClick={(e) => { e.preventDefault(); navigate('shop', { occasion: occ.id }); }}
+                className="group relative rounded-3xl overflow-hidden h-64 shadow-card hover:shadow-card-hover cursor-pointer transition-all duration-300 transform hover:-translate-y-1 block"
               >
                 {/* Background Image with dark gradient overlay */}
                 <img 
                   src={occ.bgImg} 
                   alt={occ.title} 
+                  loading="lazy"
+                  width="400"
+                  height="300"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
@@ -90,7 +94,7 @@ export const OccasionGrid = ({ navigate }) => {
                     </span>
                   </div>
                 </div>
-              </div>
+              </a>
             );
           })}
         </div>

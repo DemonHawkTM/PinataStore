@@ -1,7 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { INITIAL_PRODUCTS } from '../data/products';
 import { DELIVERY_THRESHOLD_PKR, FLAT_DELIVERY_FEE_PKR } from '../data/lahoreAreas';
-import { safeStorage, hashPin, AUTHORIZED_PIN_HASHES, generateSessionProof } from '../utils/security';
+import { 
+  safeStorage, 
+  hashPin, 
+  AUTHORIZED_PIN_HASHES, 
+  generateSessionProof, 
+  verifySessionProof, 
+  sanitizeStoreStorage 
+} from '../utils/security';
 
 const StoreContext = createContext();
 
@@ -43,127 +50,120 @@ export const validateAndCalculateCartItem = (item) => {
   return { ...item, price: unitPrice };
 };
 
-const DEMO_INITIAL_ORDERS = [
-  {
-    id: "PS-10482",
-    createdAt: "2026-10-01T14:30:00Z",
-    customer: {
-      fullName: "Sara Khan",
-      email: "sara@example.com",
-      phone: "+92 300 8492019",
-      lahoreArea: "DHA Phase 5 - 6",
-      streetAddress: "Sector C, DHA Phase 5, Lahore"
-    },
-    partyDate: "2026-10-10",
-    items: [
-      {
-        id: "pinata-01",
-        title: "Unicorn Dream Piñata",
-        price: 3500,
-        quantity: 1,
-        variant: "Normal 45-50cm · Pink & Gold",
-        image: "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=600&auto=format&fit=crop&q=80"
-      },
-      {
-        id: "pinata-06",
-        title: "Mini Heart Tabletop Piñata",
-        price: 1200,
-        quantity: 2,
-        variant: "Mini · Romantic Red",
-        image: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=600&auto=format&fit=crop&q=80"
-      }
-    ],
-    subtotal: 5900,
-    deliveryFee: 0,
-    total: 5900,
-    paymentMethod: "cod",
-    paymentStatus: "deposit_paid", // pending, deposit_paid, completed
-    status: "crafting", // placed, deposit_received, crafting, dispatched, delivered
-    notes: "Please pack gently with pastel ribbons. Surprise for 4th birthday!"
+// Customer Session Helper for Customer-Wise Data Isolation
+const getOrCreateCustomerId = () => {
+  let cid = safeStorage.get('pinata_customer_session_id', null);
+  if (!cid) {
+    cid = 'cust_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 8);
+    safeStorage.set('pinata_customer_session_id', cid);
   }
-];
+  return cid;
+};
 
 export const StoreProvider = ({ children }) => {
+  // Purge any legacy mock / filler data immediately on initialization
+  useEffect(() => {
+    sanitizeStoreStorage();
+  }, []);
+
+  const [customerId] = useState(getOrCreateCustomerId);
+
   // 1. Catalog Products (persisted safely)
   const [products, setProducts] = useState(() => safeStorage.get('pinata_store_products', INITIAL_PRODUCTS));
   useEffect(() => {
     safeStorage.set('pinata_store_products', products);
   }, [products]);
 
-  // 2. Cart (persisted safely)
-  const [cart, setCart] = useState(() => safeStorage.get('pinata_store_cart', [
-    {
-      cartItemId: "demo-item-1",
-      id: "pinata-01",
-      title: "Unicorn Dream Piñata",
-      price: 3500,
-      quantity: 1,
-      variant: "Normal · Pink",
-      image: "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=600&auto=format&fit=crop&q=80"
-    },
-    {
-      cartItemId: "demo-item-2",
-      id: "pinata-06",
-      title: "Mini Heart Piñata",
-      price: 1200,
-      quantity: 2,
-      variant: "Normal · Pink",
-      image: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=600&auto=format&fit=crop&q=80"
+  // 2. Cart (Customer-wise, starts completely empty with NO filler data)
+  const [cart, setCart] = useState(() => {
+    sanitizeStoreStorage();
+    const stored = safeStorage.get(`pinata_cart_${customerId}`, null) || safeStorage.get('pinata_store_cart', []);
+    // Verify stored is an array and filter out any accidental legacy demo items
+    if (Array.isArray(stored)) {
+      return stored.filter(item => item && !item.cartItemId?.startsWith('demo-item-'));
     }
-  ]));
+    return [];
+  });
+
   useEffect(() => {
+    safeStorage.set(`pinata_cart_${customerId}`, cart);
     safeStorage.set('pinata_store_cart', cart);
-  }, [cart]);
+  }, [cart, customerId]);
 
-  // 3. Wishlist (persisted safely)
-  const [wishlist, setWishlist] = useState(() => safeStorage.get('pinata_store_wishlist', ["pinata-01"]));
+  // 3. Wishlist (Customer-wise, starts completely empty with NO filler data)
+  const [wishlist, setWishlist] = useState(() => {
+    sanitizeStoreStorage();
+    const stored = safeStorage.get(`pinata_wishlist_${customerId}`, null) || safeStorage.get('pinata_store_wishlist', []);
+    if (Array.isArray(stored)) {
+      // Discard stale mock wishlist if single demo product
+      if (stored.length === 1 && stored[0] === 'pinata-01' && !localStorage.getItem('pinata_wishlist_explicit')) {
+        return [];
+      }
+      return stored;
+    }
+    return [];
+  });
+
   useEffect(() => {
+    safeStorage.set(`pinata_wishlist_${customerId}`, wishlist);
     safeStorage.set('pinata_store_wishlist', wishlist);
-  }, [wishlist]);
+  }, [wishlist, customerId]);
 
-  // 4. Orders (persisted safely)
-  const [orders, setOrders] = useState(() => safeStorage.get('pinata_store_orders', DEMO_INITIAL_ORDERS));
+  // 4. Orders (Production-ready: Starts empty with NO filler data or fake PII)
+  const [orders, setOrders] = useState(() => {
+    const stored = safeStorage.get('pinata_store_orders', []);
+    if (Array.isArray(stored)) {
+      return stored.filter(o => o.id !== 'PS-10482');
+    }
+    return [];
+  });
+
   useEffect(() => {
     safeStorage.set('pinata_store_orders', orders);
   }, [orders]);
 
-  // 5. Custom Inquiries (persisted safely)
-  const [customInquiries, setCustomInquiries] = useState(() => safeStorage.get('pinata_custom_inquiries', [
-    {
-      id: "INQ-901",
-      customerName: "Ayesha Malik",
-      whatsapp: "+92 321 4455667",
-      pinataType: "3D Character",
-      size: "Normal (45-50cm)",
-      color: "Pink & Mint",
-      textOnPiece: "Zayd Turns 3",
-      partyDate: "2026-10-15",
-      estimatedPrice: 3800,
-      specialInstructions: "Needs pull string for small toddlers",
-      createdAt: "2026-10-02"
+  // 5. Custom Inquiries (Starts empty with NO filler data)
+  const [customInquiries, setCustomInquiries] = useState(() => {
+    const stored = safeStorage.get('pinata_custom_inquiries', []);
+    if (Array.isArray(stored)) {
+      return stored.filter(i => i.id !== 'INQ-901');
     }
-  ]));
+    return [];
+  });
+
   useEffect(() => {
     safeStorage.set('pinata_custom_inquiries', customInquiries);
   }, [customInquiries]);
 
-  // 6. Contact Inquiries (prevents silent drop of contact form submissions)
+  // 6. Contact Inquiries
   const [contactInquiries, setContactInquiries] = useState(() => safeStorage.get('pinata_contact_inquiries', []));
   useEffect(() => {
     safeStorage.set('pinata_contact_inquiries', contactInquiries);
   }, [contactInquiries]);
 
-  // 7. Cryptographically Hashed Admin Authentication
-  const [isAdmin, setIsAdmin] = useState(() => {
-    try {
-      const sess = sessionStorage.getItem('pinata_admin_session');
-      if (!sess) return false;
-      const parsed = JSON.parse(sess);
-      return !!(parsed && parsed.token && parsed.expiresAt > Date.now());
-    } catch {
-      return false;
-    }
-  });
+  // 7. Cryptographically Verified Admin Authentication
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdminSession = async () => {
+      try {
+        const sess = sessionStorage.getItem('pinata_admin_session');
+        if (!sess) {
+          setIsAdmin(false);
+          return;
+        }
+        const parsed = JSON.parse(sess);
+        const isValid = await verifySessionProof(parsed);
+        setIsAdmin(isValid);
+        if (!isValid) {
+          sessionStorage.removeItem('pinata_admin_session');
+        }
+      } catch {
+        setIsAdmin(false);
+      }
+    };
+    checkAdminSession();
+  }, []);
 
   // UI Modals / Drawers
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -206,9 +206,7 @@ export const StoreProvider = ({ children }) => {
         customSpec: options.customSpec || null
       };
 
-      // Ensure price conforms to canonical rules
       const verifiedItem = validateAndCalculateCartItem(rawItem);
-
       return [...prev, verifiedItem];
     });
     setIsCartOpen(true);
@@ -226,10 +224,15 @@ export const StoreProvider = ({ children }) => {
     setCart(prev => prev.filter(item => item.cartItemId !== cartItemId));
   };
 
-  const clearCart = () => setCart([]);
+  const clearCart = () => {
+    setCart([]);
+  };
 
   // Wishlist Actions
   const toggleWishlist = (productId) => {
+    try {
+      localStorage.setItem('pinata_wishlist_explicit', 'true');
+    } catch (_) {}
     setWishlist(prev => 
       prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId]
     );
@@ -255,9 +258,12 @@ export const StoreProvider = ({ children }) => {
     setProducts(prev => prev.filter(p => p.id !== productId));
   };
 
-  // Orders Actions with Authoritative Price Validation
+  // Orders Actions with High-Entropy IDs (Prevents ID Enumeration)
   const placeOrder = (orderData) => {
-    const newOrderId = `PS-${Math.floor(10000 + Math.random() * 90000)}`;
+    // High-entropy alphanumeric Order ID: e.g. PS-LR39X-4B8K
+    const entropyPart = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const timePart = Date.now().toString(36).slice(-5).toUpperCase();
+    const newOrderId = `PS-${timePart}-${entropyPart}`;
 
     // Authoritative re-validation of all cart items
     const validatedItems = cart.map(validateAndCalculateCartItem);
@@ -287,8 +293,9 @@ export const StoreProvider = ({ children }) => {
   };
 
   const addCustomInquiry = (inquiry) => {
+    const entropy = Math.random().toString(36).substring(2, 5).toUpperCase();
     const newInquiry = {
-      id: `INQ-${Math.floor(100 + Math.random() * 900)}`,
+      id: `INQ-${Date.now().toString(36).slice(-3).toUpperCase()}-${entropy}`,
       createdAt: new Date().toISOString().slice(0, 10),
       ...inquiry
     };
@@ -297,8 +304,9 @@ export const StoreProvider = ({ children }) => {
   };
 
   const addContactInquiry = (inquiry) => {
+    const entropy = Math.random().toString(36).substring(2, 6).toUpperCase();
     const record = {
-      id: `MSG-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: `MSG-${Date.now().toString(36).slice(-4).toUpperCase()}-${entropy}`,
       createdAt: new Date().toISOString(),
       ...inquiry
     };
@@ -306,11 +314,11 @@ export const StoreProvider = ({ children }) => {
     return record;
   };
 
-  // Admin Auth via SHA-256 and Session Token
+  // Cryptographically Secured Admin Login
   const loginAdmin = async (pin) => {
     const hash = await hashPin(pin);
     if (hash && AUTHORIZED_PIN_HASHES.has(hash)) {
-      const session = generateSessionProof();
+      const session = await generateSessionProof();
       sessionStorage.setItem('pinata_admin_session', JSON.stringify(session));
       setIsAdmin(true);
       return { success: true };
@@ -325,6 +333,7 @@ export const StoreProvider = ({ children }) => {
 
   return (
     <StoreContext.Provider value={{
+      customerId,
       products,
       updateProduct,
       addProduct,

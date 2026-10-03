@@ -1,5 +1,5 @@
 /**
- * Security & Data Sanitization Utilities
+ * Security, Authentication & Data Sanitization Utilities
  * Pinata Store Lahore
  */
 
@@ -60,7 +60,7 @@ const SALT = 'lahore_pinata_salt_2026:';
 export async function hashPin(pin) {
   try {
     const encoder = new TextEncoder();
-    const data = encoder.encode(SALT + pin.trim());
+    const data = encoder.encode(SALT + (pin || '').trim());
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
@@ -70,26 +70,89 @@ export async function hashPin(pin) {
   }
 }
 
-// Pre-computed salted SHA-256 hashes for authorized PINs:
-// "1234" -> 6599be86a61478c5b54c9c2a9ac008211abdfc0980c55c29531af7fd7cff7913
-// "admin123" -> 94bc5bddc891889bb06e58cc0fc6ace74080f28f37c748ef62b4d20c26264bd0
-// "pinata2026" -> 19165ae217eec94c06f65ba5a6fe7973b194c630db2ac800d075943964fea190
+// Authorized Master Passkey Hashes (No plaintext credentials stored)
 export const AUTHORIZED_PIN_HASHES = new Set([
-  '6599be86a61478c5b54c9c2a9ac008211abdfc0980c55c29531af7fd7cff7913',
-  '94bc5bddc891889bb06e58cc0fc6ace74080f28f37c748ef62b4d20c26264bd0',
+  'fe4720eb944a70c25107cf686dca38e74f4cb9eff8c0fb8bc82a0b820d3ef553',
+  '9bb430538618ce44503df589ac48394c66a423532320565ebdd0815b927b4587',
   '19165ae217eec94c06f65ba5a6fe7973b194c630db2ac800d075943964fea190'
 ]);
 
-// 3. Cryptographic Session Token Generation
-export function generateSessionProof() {
+// 3. Cryptographic Session Token & Tamper-Proof Signature
+export async function computeSessionSignature(token, expiresAt) {
+  try {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(`pinata_sig_salt_2026:${token}:${expiresAt}`);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  } catch (e) {
+    return null;
+  }
+}
+
+export async function generateSessionProof() {
   const array = new Uint8Array(24);
   crypto.getRandomValues(array);
   const token = Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
   const expiresAt = Date.now() + 2 * 60 * 60 * 1000; // 2 hours validity
-  return { token, expiresAt };
+  const signature = await computeSessionSignature(token, expiresAt);
+  return { token, expiresAt, signature };
 }
 
-// 4. Safe LocalStorage Wrapper with Quota Protection & Try/Catch
+export async function verifySessionProof(session) {
+  if (!session || !session.token || !session.expiresAt || !session.signature) return false;
+  if (session.expiresAt <= Date.now()) return false;
+  const expectedSig = await computeSessionSignature(session.token, session.expiresAt);
+  return session.signature === expectedSig;
+}
+
+// 4. Rate-Limiting & Lockout Persistence (Resistant to Page Refresh)
+const LOCKOUT_KEY = 'pinata_admin_lockout';
+export const getAdminLockoutState = () => {
+  try {
+    const raw = localStorage.getItem(LOCKOUT_KEY);
+    if (!raw) return { failedAttempts: 0, lockoutRemainingSeconds: 0 };
+    const data = JSON.parse(raw);
+    const now = Date.now();
+    if (data.lockoutUntil && data.lockoutUntil > now) {
+      const remaining = Math.ceil((data.lockoutUntil - now) / 1000);
+      return { failedAttempts: data.failedAttempts || 5, lockoutRemainingSeconds: remaining };
+    }
+    return { failedAttempts: data.failedAttempts || 0, lockoutRemainingSeconds: 0 };
+  } catch {
+    return { failedAttempts: 0, lockoutRemainingSeconds: 0 };
+  }
+};
+
+export const recordAdminFailedAttempt = () => {
+  try {
+    const current = getAdminLockoutState();
+    const nextAttempts = current.failedAttempts + 1;
+    let lockoutUntil = null;
+    let lockoutSeconds = 0;
+    if (nextAttempts >= 5) {
+      lockoutSeconds = 60;
+      lockoutUntil = Date.now() + 60 * 1000;
+    }
+    localStorage.setItem(LOCKOUT_KEY, JSON.stringify({
+      failedAttempts: nextAttempts,
+      lockoutUntil
+    }));
+    return { failedAttempts: nextAttempts, lockoutRemainingSeconds: lockoutSeconds };
+  } catch {
+    return { failedAttempts: 1, lockoutRemainingSeconds: 0 };
+  }
+};
+
+export const resetAdminLockout = () => {
+  try {
+    localStorage.removeItem(LOCKOUT_KEY);
+  } catch {
+    // ignore
+  }
+};
+
+// 5. Safe LocalStorage Wrapper with Quota Protection & Try/Catch
 export const safeStorage = {
   get: (key, fallback) => {
     try {
@@ -118,7 +181,52 @@ export const safeStorage = {
   }
 };
 
-// 5. PII Masking Utilities for Public View & Storage Protection
+// 6. Cleanup & Purge Old Demo / Mock / Filler Data
+export const sanitizeStoreStorage = () => {
+  try {
+    // Purge mock demo items from cart
+    const cart = safeStorage.get('pinata_store_cart', null);
+    if (cart && Array.isArray(cart)) {
+      const isDemoCart = cart.some(item => 
+        item.cartItemId === 'demo-item-1' || 
+        item.cartItemId === 'demo-item-2' ||
+        item.id === 'demo-item-1' ||
+        item.id === 'demo-item-2'
+      );
+      if (isDemoCart) {
+        safeStorage.remove('pinata_store_cart');
+      }
+    }
+
+    // Purge mock wishlist
+    const wishlist = safeStorage.get('pinata_store_wishlist', null);
+    if (wishlist && Array.isArray(wishlist) && wishlist.length === 1 && wishlist[0] === 'pinata-01') {
+      safeStorage.remove('pinata_store_wishlist');
+    }
+
+    // Purge mock order PS-10482
+    const orders = safeStorage.get('pinata_store_orders', null);
+    if (orders && Array.isArray(orders)) {
+      const filtered = orders.filter(o => o.id !== 'PS-10482');
+      if (filtered.length !== orders.length) {
+        safeStorage.set('pinata_store_orders', filtered);
+      }
+    }
+
+    // Purge mock inquiry INQ-901
+    const inquiries = safeStorage.get('pinata_custom_inquiries', null);
+    if (inquiries && Array.isArray(inquiries)) {
+      const filtered = inquiries.filter(i => i.id !== 'INQ-901');
+      if (filtered.length !== inquiries.length) {
+        safeStorage.set('pinata_custom_inquiries', filtered);
+      }
+    }
+  } catch (err) {
+    console.warn('Storage sanitation notice:', err);
+  }
+};
+
+// 7. PII Masking Utilities for Public View & Storage Protection
 export const maskPhone = (phone) => {
   if (!phone) return '••••••';
   const clean = phone.replace(/\s+/g, '');
@@ -135,7 +243,6 @@ export const maskName = (name) => {
 
 export const maskAddress = (address) => {
   if (!address) return 'Lahore';
-  // Keep Lahore sector/area name, mask street number
   const parts = address.split(',');
   if (parts.length > 1) {
     return 'Sector Protected, ' + parts.slice(1).join(',').trim();

@@ -57,7 +57,7 @@ export const CheckoutPage = ({ navigate }) => {
     const order = placeOrder({
       customer: {
         fullName,
-        email: email || 'customer@example.com',
+        email: email.trim(),
         phone,
         lahoreArea,
         streetAddress
@@ -147,12 +147,13 @@ _Please confirm advance deposit details for craft commencement._`
                 Track Order Progress ({confirmedOrder.id})
               </button>
 
-              <button
-                onClick={() => navigate('home')}
-                className="text-xs text-gray-500 hover:text-gray-800 transition-colors"
+              <a
+                href="/PinataStore/"
+                onClick={(e) => { e.preventDefault(); navigate('home'); }}
+                className="text-xs text-gray-500 hover:text-gray-800 transition-colors inline-block"
               >
                 Return to Home
-              </button>
+              </a>
             </div>
 
           </div>
@@ -236,7 +237,7 @@ _Please confirm advance deposit details for craft commencement._`
                     </label>
                     <input
                       type="email"
-                      placeholder="sara@example.com"
+                      placeholder="yourname@gmail.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full px-4 py-2.5 rounded-xl border border-pink-200 text-xs sm:text-sm bg-white focus:outline-none focus:border-brand-pink"

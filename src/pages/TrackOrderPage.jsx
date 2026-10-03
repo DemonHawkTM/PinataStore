@@ -19,21 +19,18 @@ import { maskName, maskPhone, maskAddress } from '../utils/security';
 export const TrackOrderPage = ({ queryParams, navigate }) => {
   const { orders } = useStore();
   
-  const [orderIdInput, setOrderIdInput] = useState(queryParams?.orderId || 'PS-10482');
-  const [contactInput, setContactInput] = useState('sara@example.com');
+  const [orderIdInput, setOrderIdInput] = useState(queryParams?.orderId || '');
+  const [contactInput, setContactInput] = useState('');
   const [searchedOrder, setSearchedOrder] = useState(null);
   const [searched, setSearched] = useState(false);
   const [verificationError, setVerificationError] = useState('');
 
+  // Update order ID if passed from route navigation (e.g. checkout redirect)
   useEffect(() => {
-    // Initial verification for pre-seeded demo
-    const initialId = queryParams?.orderId || 'PS-10482';
-    const match = orders.find(o => o.id === initialId);
-    if (match) {
-      setSearchedOrder(match);
-      setSearched(true);
+    if (queryParams?.orderId) {
+      setOrderIdInput(queryParams.orderId);
     }
-  }, [orders, queryParams]);
+  }, [queryParams]);
 
   const handleTrack = (e) => {
     e.preventDefault();
@@ -43,14 +40,14 @@ export const TrackOrderPage = ({ queryParams, navigate }) => {
     setVerificationError('');
 
     if (!cleanId) {
-      setVerificationError('Please enter a valid Order ID.');
+      setVerificationError('Please enter your Order ID from your confirmation receipt.');
       setSearchedOrder(null);
       setSearched(true);
       return;
     }
 
     if (!cleanContact) {
-      setVerificationError('For privacy and security, please provide the matching Phone number or Email.');
+      setVerificationError('For security and privacy, please provide the Phone number or Email used at checkout.');
       setSearchedOrder(null);
       setSearched(true);
       return;
@@ -58,19 +55,23 @@ export const TrackOrderPage = ({ queryParams, navigate }) => {
 
     // Step 1: Locate Order by ID
     const foundOrder = orders.find(o => o.id.toUpperCase() === cleanId);
+    
+    // Step 2: Dual-Factor Verification (Exact Phone or Email match)
+    // To prevent ID enumeration (HIGH-02), return a uniform non-revealing response
+    const genericErrorMsg = `If an active order matches ID "${cleanId}" and the provided contact details, its progress timeline will appear below. Please verify the exact details from your checkout confirmation.`;
+
     if (!foundOrder) {
       setSearchedOrder(null);
-      setVerificationError(`No order record found for ID "${cleanId}". Please check your receipt.`);
+      setVerificationError(genericErrorMsg);
       setSearched(true);
       return;
     }
 
-    // Step 2: Dual-Factor Verification (Exact Phone or Email match)
-    const orderPhoneDigits = (foundOrder.customer.phone || '').replace(/\D/g, '');
+    const orderPhoneDigits = (foundOrder.customer?.phone || '').replace(/\D/g, '');
     const inputPhoneDigits = cleanContact.replace(/\D/g, '');
-    const orderEmail = (foundOrder.customer.email || '').toLowerCase();
+    const orderEmail = (foundOrder.customer?.email || '').toLowerCase();
 
-    const isEmailValid = orderEmail === cleanContact;
+    const isEmailValid = cleanContact.includes('@') && orderEmail === cleanContact;
     const isPhoneValid = inputPhoneDigits.length >= 7 && orderPhoneDigits.endsWith(inputPhoneDigits);
 
     if (isEmailValid || isPhoneValid) {
@@ -78,7 +79,7 @@ export const TrackOrderPage = ({ queryParams, navigate }) => {
       setVerificationError('');
     } else {
       setSearchedOrder(null);
-      setVerificationError(`Order "${cleanId}" exists, but the contact number/email did not match our records. Please verify the phone or email used at checkout.`);
+      setVerificationError(genericErrorMsg);
     }
 
     setSearched(true);
@@ -111,7 +112,13 @@ export const TrackOrderPage = ({ queryParams, navigate }) => {
         
         {/* Breadcrumb */}
         <div className="text-xs text-gray-500 mb-6 flex items-center gap-1.5">
-          <button onClick={() => navigate('home')} className="hover:text-brand-pink transition-colors">Home</button>
+          <a 
+            href="/PinataStore/" 
+            onClick={(e) => { e.preventDefault(); navigate('home'); }} 
+            className="hover:text-brand-pink transition-colors"
+          >
+            Home
+          </a>
           <span>/</span>
           <span className="text-gray-900 font-semibold">Track Order</span>
         </div>
@@ -125,7 +132,7 @@ export const TrackOrderPage = ({ queryParams, navigate }) => {
             Track your order
           </h1>
           <p className="text-xs sm:text-sm text-gray-500 mt-1 font-body">
-            Verify order progress with your Order ID and Phone / Email. (Demo: <strong className="text-brand-pink font-semibold">PS-10482</strong> with <span className="text-gray-700">sara@example.com</span>)
+            Verify order progress with your Order ID and matching Phone / Email.
           </p>
         </div>
 
@@ -138,7 +145,7 @@ export const TrackOrderPage = ({ queryParams, navigate }) => {
               </label>
               <input
                 type="text"
-                placeholder="e.g. PS-10482"
+                placeholder="e.g. PS-XXXXX"
                 value={orderIdInput}
                 onChange={(e) => setOrderIdInput(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border border-pink-200 text-xs sm:text-sm bg-white focus:outline-none focus:border-brand-pink font-semibold"
@@ -152,14 +159,14 @@ export const TrackOrderPage = ({ queryParams, navigate }) => {
               </label>
               <input
                 type="text"
-                placeholder="e.g. sara@example.com or 03008492019"
+                placeholder="Phone number or Email used at checkout"
                 value={contactInput}
                 onChange={(e) => setContactInput(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border border-pink-200 text-xs sm:text-sm bg-white focus:outline-none focus:border-brand-pink"
                 required
               />
               <span className="text-[11px] text-gray-400 mt-1 block">
-                Dual-factor check protects your order privacy and delivery address.
+                Dual-factor verification protects your order privacy and delivery address.
               </span>
             </div>
 
@@ -173,12 +180,12 @@ export const TrackOrderPage = ({ queryParams, navigate }) => {
           </form>
         </div>
 
-        {/* Error / Not Found Banner */}
+        {/* Error / Uniform Not Found Banner */}
         {verificationError && (
-          <div className="max-w-lg mx-auto mb-8 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 text-xs text-red-800">
-            <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+          <div className="max-w-lg mx-auto mb-8 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3 text-xs text-amber-900">
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
             <div>
-              <strong className="block font-semibold">Verification Alert</strong>
+              <strong className="block font-semibold">Verification Notice</strong>
               <p className="mt-0.5 leading-relaxed">{verificationError}</p>
             </div>
           </div>
@@ -203,10 +210,10 @@ export const TrackOrderPage = ({ queryParams, navigate }) => {
                   Order {searchedOrder.id}
                 </h2>
                 <p className="text-xs text-gray-500 mt-1">
-                  Recipient: <strong className="text-gray-800">{maskName(searchedOrder.customer.fullName)}</strong> · {searchedOrder.customer.lahoreArea}
+                  Recipient: <strong className="text-gray-800">{maskName(searchedOrder.customer?.fullName)}</strong> · {searchedOrder.customer?.lahoreArea}
                 </p>
                 <p className="text-[11px] text-gray-400">
-                  Delivery Destination: {maskAddress(searchedOrder.customer.streetAddress)}
+                  Delivery Destination: {maskAddress(searchedOrder.customer?.streetAddress)}
                 </p>
               </div>
 
@@ -280,7 +287,7 @@ export const TrackOrderPage = ({ queryParams, navigate }) => {
                 Items in this order:
               </h3>
               <div className="space-y-2">
-                {searchedOrder.items.map((it, i) => (
+                {searchedOrder.items?.map((it, i) => (
                   <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-pink-50/40 text-xs">
                     {it.image && <img src={it.image} alt={it.title} className="w-10 h-10 object-cover rounded-lg shrink-0" />}
                     <div className="flex-1 min-w-0">
@@ -297,7 +304,7 @@ export const TrackOrderPage = ({ queryParams, navigate }) => {
             <div className="p-4 bg-emerald-50 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
               <div>
                 <p className="font-bold text-emerald-900">Have questions about your order?</p>
-                <p className="text-emerald-700">Chat directly with the artisan working on your piñata in Lahore.</p>
+                <p className="text-emerald-700">Chat directly with our Lahore workshop artisans.</p>
               </div>
               <a
                 href={`https://wa.me/923001234567?text=${encodeURIComponent(`Hi Pinata Shop! Checking status for order ${searchedOrder.id}.`)}`}

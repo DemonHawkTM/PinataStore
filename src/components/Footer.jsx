@@ -31,7 +31,7 @@ export const Footer = ({ navigate }) => {
                 <Layers className="w-6 h-6" />
               </div>
               <h4 className="font-bold text-gray-800 text-xs sm:text-sm">Multiple Categories</h4>
-              <p className="text-gray-500 text-[11px]">3D, 2D, mini & eggs</p>
+              <p className="text-gray-500 text-[11px]">3D, 2D, numbers & mini</p>
             </div>
 
             <div className="flex flex-col items-center space-y-2">
@@ -67,7 +67,7 @@ export const Footer = ({ navigate }) => {
               </span>
             </div>
             <p className="text-gray-600 text-sm font-body max-w-sm leading-relaxed">
-              You think it, we make it. Lahore's dedicated artisanal craft house for handmade custom piñatas, mini party gifts, and giant surprise eggs.
+              You think it, we make it. Lahore's dedicated artisanal craft house for handmade custom piñatas and party celebrations.
             </p>
             <div className="flex items-center gap-3 pt-2">
               <a 
@@ -107,8 +107,13 @@ export const Footer = ({ navigate }) => {
                 </button>
               </li>
               <li>
-                <button onClick={() => navigate('shop', { category: 'surprise-egg' })} className="hover:text-brand-pink transition-colors">
-                  Giant Surprise Eggs
+                <button onClick={() => navigate('shop', { category: 'giant' })} className="hover:text-brand-pink transition-colors">
+                  Giant 3D Piñatas
+                </button>
+              </li>
+              <li>
+                <button onClick={() => navigate('shop', { category: 'number' })} className="hover:text-brand-pink transition-colors">
+                  Number & Letter Piñatas
                 </button>
               </li>
             </ul>

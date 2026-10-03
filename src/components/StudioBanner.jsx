@@ -21,7 +21,7 @@ export const StudioBanner = ({ navigate }) => {
             </h2>
 
             <p className="text-pink-100 text-sm sm:text-base font-body leading-relaxed">
-              Upload a photo, logo, or character reference. From 2D party pieces to 5-foot 3D sculptures and giant surprise eggs handcrafted in Lahore.
+              Upload a photo, logo, or character reference. From 2D pull-string piñatas to giant 3D character piñatas handcrafted in Lahore.
             </p>
 
             <div className="pt-2">

@@ -189,10 +189,10 @@ _Please let me know if this party slot is open!_`
                   onChange={(e) => setPinataType(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:border-brand-pink text-xs sm:text-sm bg-white cursor-pointer"
                 >
-                  <option value="3D Character Piñata">3D Character Piñata (Full Sculpture)</option>
+                  <option value="3D Character Piñata">3D Character Piñata</option>
                   <option value="2D Flat Piñata">2D Flat / Pull-String Piñata</option>
                   <option value="Mini Tabletop Piñata">Mini Tabletop Piñata</option>
-                  <option value="Giant Surprise Egg Piñata">Giant Surprise Egg Piñata (2.5ft)</option>
+                  <option value="Giant 3D Piñata">Giant 3D Piñata (2.5ft)</option>
                   <option value="Number or Letter Piñata">Number or Letter Piñata</option>
                 </select>
               </div>
@@ -318,7 +318,7 @@ _Please let me know if this party slot is open!_`
               </label>
               <textarea
                 rows="3"
-                placeholder="Describe theme details, pull-string vs stick preference, favourite cartoon characters, or surprise egg surprises..."
+                placeholder="Describe theme details, pull-string vs stick preference, favourite cartoon characters, color preferences..."
                 value={specialInstructions}
                 onChange={(e) => setSpecialInstructions(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:border-brand-pink text-xs sm:text-sm bg-white resize-none"

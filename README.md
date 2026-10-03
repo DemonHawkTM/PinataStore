@@ -1,13 +1,13 @@
 # PinataStore — Custom Handcrafted Piñatas (Lahore Edition) 🪅
 
-A modern, mobile-first, high-conversion eCommerce and bespoke Custom Studio platform for artisanal piñatas, mini gifts, and giant surprise eggs, handcrafted and delivered across Lahore, Pakistan.
+A modern, mobile-first, high-conversion eCommerce and bespoke Custom Studio platform for artisanal piñatas (pre-made designs and bespoke custom orders), handcrafted and delivered across Lahore, Pakistan.
 
 ---
 
 ## ✨ Features
 
 - **Celebratory Visual Branding**: Festive bubblegum pink and celebration teal design system, dynamic confetti animations (`canvas-confetti`), and 3D floating showcase cards.
-- **Product Catalog (`/shop`)**: Filterable categories (*3D Character Piñatas, 2D Pull-String, Mini Tabletop, Giant Surprise Eggs, Number/Letter Piñatas*) with real-time fuzzy search and price/rating sorting.
+- **Product Catalog (`/shop`)**: Filterable categories (*3D Character Piñatas, 2D Pull-String, Mini Tabletop, Giant 3D Piñatas, Number/Letter Piñatas*) with real-time fuzzy search and price/rating sorting.
 - **Interactive Custom Piñata Studio (`/customize`)**:
   - Live estimated quote calculator (from PKR 3,800).
   - 8-color interactive swatch picker.

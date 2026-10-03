@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Sparkles, ArrowRight, Star, Heart, Clock, Gift } from 'lucide-react';
+import { Sparkles, ArrowRight, Star, Heart, Clock } from 'lucide-react';
 
 export const HeroSection = ({ navigate }) => {
   const triggerConfetti = () => {
@@ -44,7 +44,7 @@ export const HeroSection = ({ navigate }) => {
 
             {/* Subtitle */}
             <p className="text-base sm:text-lg text-gray-600 max-w-xl mx-auto lg:mx-0 leading-relaxed font-body">
-              Custom piñatas, mini gifts, and giant surprise eggs — handcrafted in Lahore around your theme, your colours, and your people. <strong className="text-gray-800 font-semibold">You think it. We make it.</strong>
+              Custom & pre-made handcrafted piñatas — sculpted in Lahore around your character theme, colours, and party date. <strong className="text-gray-800 font-semibold">You think it. We make it.</strong>
             </p>
 
             {/* Action Buttons */}

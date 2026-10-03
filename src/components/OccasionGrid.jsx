@@ -14,7 +14,7 @@ export const OccasionGrid = ({ navigate }) => {
     {
       id: "baby-shower",
       title: "Baby Shower & Gender Reveal",
-      subtitle: "Giant eggs, question marks, pastels",
+      subtitle: "Reveal piñatas, question marks, pastels",
       icon: Baby,
       color: "from-teal-400 to-emerald-400",
       bgImg: "https://images.unsplash.com/photo-1527529482837-4698179dc6ce?w=400&auto=format&fit=crop&q=80"
@@ -22,7 +22,7 @@ export const OccasionGrid = ({ navigate }) => {
     {
       id: "anniversary",
       title: "Anniversary & Couples",
-      subtitle: "Hearts, custom letters, champagne",
+      subtitle: "Heart piñatas, numbers, celebrations",
       icon: Heart,
       color: "from-red-400 to-pink-500",
       bgImg: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=400&auto=format&fit=crop&q=80"
@@ -30,7 +30,7 @@ export const OccasionGrid = ({ navigate }) => {
     {
       id: "party",
       title: "Milestones & Theme Events",
-      subtitle: "Graduations, brands, custom sculptures",
+      subtitle: "Graduations, brands, custom piñatas",
       icon: PartyPopper,
       color: "from-amber-400 to-orange-400",
       bgImg: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&auto=format&fit=crop&q=80"

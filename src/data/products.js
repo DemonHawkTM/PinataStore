@@ -3,7 +3,7 @@ export const INITIAL_PRODUCTS = [
     id: "pinata-01",
     title: "Unicorn Dream Piñata",
     slug: "unicorn-dream-pinata",
-    category: "3d", // 3d, 2d, mini, surprise-egg, number
+    category: "3d",
     categoryLabel: "3D Character Piñata",
     occasion: "birthday",
     price: 3500,
@@ -75,16 +75,16 @@ export const INITIAL_PRODUCTS = [
     leadTimeDays: "5–7 days",
     dimensions: "48cm diameter x 14cm",
     image: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&auto=format&fit=crop&q=80",
-    description: "Bold superhero motif crafted with high-impact color layers. Available as traditional buster or toddler-safe pull-string option.",
+    description: "Bold superhero motif crafted with high-impact color layers. Available as traditional buster or toddler-safe pull-string piñata.",
     candyCapacityKg: "1.8 kg",
     colors: ["Red & Blue", "Black & Gold", "Neon Green"]
   },
   {
     id: "pinata-05",
-    title: "Giant Surprise Egg Piñata",
-    slug: "giant-surprise-egg-pinata",
-    category: "surprise-egg",
-    categoryLabel: "Giant Surprise Egg Piñata",
+    title: "Giant 3D Celebration Piñata",
+    slug: "giant-3d-celebration-pinata",
+    category: "giant",
+    categoryLabel: "Giant 3D Piñata",
     occasion: "party",
     price: 6500,
     originalPrice: 7500,
@@ -95,7 +95,7 @@ export const INITIAL_PRODUCTS = [
     leadTimeDays: "6–8 days",
     dimensions: "75cm x 50cm x 50cm",
     image: "https://images.unsplash.com/photo-1527529482837-4698179dc6ce?w=600&auto=format&fit=crop&q=80",
-    description: "Massive 2.5-foot hollow 3D surprise egg! Perfect for gender reveals or luxury party centerpieces in Lahore. Holds up to 4 kg of treats.",
+    description: "Massive 2.5-foot hollow 3D piñata! Ideal for gender reveals or large birthday party smashes in Lahore. Holds up to 4 kg of treats.",
     candyCapacityKg: "4.0 kg",
     colors: ["Pink & Blue Split", "Gold Foil", "Pastel Rainbow", "Galaxy Purple"]
   },
@@ -115,7 +115,7 @@ export const INITIAL_PRODUCTS = [
     leadTimeDays: "3–4 days",
     dimensions: "25cm x 25cm x 8cm",
     image: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=600&auto=format&fit=crop&q=80",
-    description: "Cute personal gift piñata! Ideal for anniversary surprises, proposal ring reveals, or tabletop party favors in Lahore.",
+    description: "Cute personal mini piñata! Ideal for anniversary surprises, proposal ring reveals, or tabletop party mini smashes in Lahore.",
     candyCapacityKg: "0.5 kg",
     colors: ["Romantic Red", "Blush Pink", "Lilac", "Champagne"]
   },
@@ -135,7 +135,7 @@ export const INITIAL_PRODUCTS = [
     leadTimeDays: "5–7 days",
     dimensions: "60cm x 45cm x 20cm",
     image: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=600&auto=format&fit=crop&q=80",
-    description: "Architecturally sculpted royal castle with 3 turrets, gold glitter roofs, and pink/lavender fringes. The crowning glory of royal party decor.",
+    description: "Architecturally sculpted royal castle piñata with 3 turrets, gold glitter roofs, and pink/lavender fringes.",
     candyCapacityKg: "2.5 kg",
     colors: ["Pastel Pink & Gold", "Frozen Ice Blue", "Lilac Royal"]
   },
@@ -155,7 +155,7 @@ export const INITIAL_PRODUCTS = [
     leadTimeDays: "5–7 days",
     dimensions: "45cm x 45cm x 12cm",
     image: "https://images.unsplash.com/photo-1533294455009-a77b7557d2d1?w=600&auto=format&fit=crop&q=80",
-    description: "Delicate layered wings in purple, magenta, and sunny yellow. Features soft touch paper fringes and dual suspension loops.",
+    description: "Delicate layered wings in purple, magenta, and sunny yellow. Features soft touch fringes and dual suspension loops.",
     candyCapacityKg: "1.5 kg",
     colors: ["Lavender & Pink", "Spring Pastel", "Tropical Vibrant"]
   },
@@ -184,10 +184,10 @@ export const INITIAL_PRODUCTS = [
 export const CATEGORIES = [
   { id: "all", label: "All Piñatas" },
   { id: "3d", label: "3D Character Piñatas" },
-  { id: "2d", label: "2D Pull-String" },
-  { id: "mini", label: "Mini Tabletop" },
-  { id: "surprise-egg", label: "Giant Surprise Eggs" },
-  { id: "number", label: "Numbers & Letters" }
+  { id: "2d", label: "2D Pull-String Piñatas" },
+  { id: "mini", label: "Mini Tabletop Piñatas" },
+  { id: "giant", label: "Giant 3D Piñatas" },
+  { id: "number", label: "Number & Letter Piñatas" }
 ];
 
 export const OCCASIONS = [

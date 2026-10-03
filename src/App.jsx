@@ -21,9 +21,10 @@ import { AdminDashboard } from './pages/AdminDashboard';
 
 const getRouteFromUrl = () => {
   if (typeof window === 'undefined') return 'home';
-  const path = window.location.pathname.replace(/^\//, '').toLowerCase();
-  const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase();
-  const target = hash || path;
+  const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase().trim();
+  const pathSegments = window.location.pathname.toLowerCase().split('/').filter(Boolean);
+  const lastPath = pathSegments[pathSegments.length - 1] || '';
+  const target = hash || lastPath;
 
   if (target === 'admin' || target === 'admin-login' || target === 'admin-dashboard') {
     return 'admin';
@@ -55,7 +56,9 @@ function AppContent() {
     setCurrentRoute(route);
     setQueryParams(params);
 
-    const urlPath = route === 'home' ? '/' : `/${route}`;
+    const isGhPages = window.location.pathname.startsWith('/PinataStore');
+    const basePath = isGhPages ? '/PinataStore' : '';
+    const urlPath = route === 'home' ? (basePath || '/') : `${basePath}/${route}`;
     if (window.location.pathname !== urlPath) {
       window.history.pushState(null, '', urlPath);
     }

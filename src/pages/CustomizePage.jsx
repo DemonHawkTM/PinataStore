@@ -12,6 +12,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { compressImage } from '../utils/security';
 
 export const CustomizePage = ({ navigate }) => {
   const { addToCart, addCustomInquiry } = useStore();
@@ -26,6 +27,8 @@ export const CustomizePage = ({ navigate }) => {
   const [partyDate, setPartyDate] = useState('');
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [imagePreview, setImagePreview] = useState(null);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [imageError, setImageError] = useState('');
   const [successToast, setSuccessToast] = useState(false);
 
   // Swatch colors
@@ -57,12 +60,19 @@ export const CustomizePage = ({ navigate }) => {
   today.setDate(today.getDate() + 5);
   const minDateString = today.toISOString().split('T')[0];
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    setImageError('');
+    setIsCompressing(true);
+    try {
+      const compressedUrl = await compressImage(file, 600, 600, 0.75);
+      setImagePreview(compressedUrl);
+    } catch (err) {
+      setImageError(err.message || 'Error processing image. Please select a smaller photo under 4MB.');
+    } finally {
+      setIsCompressing(false);
     }
   };
 
@@ -286,7 +296,12 @@ _Please let me know if this party slot is open!_`
                   onChange={handleImageChange}
                   className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                 />
-                {imagePreview ? (
+                {isCompressing ? (
+                  <div className="py-4 text-center">
+                    <div className="w-6 h-6 border-2 border-brand-pink border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                    <p className="text-xs font-semibold text-brand-pink">Optimizing image safely...</p>
+                  </div>
+                ) : imagePreview ? (
                   <div className="flex flex-col items-center space-y-2">
                     <img 
                       src={imagePreview} 
@@ -294,7 +309,7 @@ _Please let me know if this party slot is open!_`
                       className="w-24 h-24 object-cover rounded-xl shadow-md border border-pink-100"
                     />
                     <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5" /> Reference loaded! Tap to change
+                      <Check className="w-3.5 h-3.5" /> Reference loaded & optimized! Tap to change
                     </span>
                   </div>
                 ) : (
@@ -304,11 +319,14 @@ _Please let me know if this party slot is open!_`
                       Drag & drop your reference photo or tap to browse
                     </p>
                     <p className="text-[10px] text-gray-400">
-                      Supports JPG, PNG, WebP from your phone or PC
+                      Supports JPG, PNG, WebP (auto-optimized under 4MB)
                     </p>
                   </div>
                 )}
               </div>
+              {imageError && (
+                <p className="text-xs text-red-600 mt-1 font-medium">{imageError}</p>
+              )}
             </div>
 
             {/* Tell Us What You Want */}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import { CATEGORIES } from '../data/products';
+import { compressImage } from '../utils/security';
 import { 
   Package, 
   ShoppingBag, 
@@ -33,7 +34,8 @@ export const AdminDashboard = ({ navigate }) => {
     updateProduct,
     orders, 
     updateOrderStatus, 
-    customInquiries 
+    customInquiries,
+    contactInquiries
   } = useStore();
 
   const [activeTab, setActiveTab] = useState('products'); // products, orders, inquiries
@@ -93,12 +95,15 @@ export const AdminDashboard = ({ navigate }) => {
     setNewDesc('');
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setNewImage(reader.result);
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImage(file, 600, 600, 0.75);
+        setNewImage(compressed);
+      } catch (err) {
+        alert(err.message || 'Image processing failed');
+      }
     }
   };
 
@@ -382,7 +387,7 @@ export const AdminDashboard = ({ navigate }) => {
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-extrabold text-gray-900">Total: PKR {order.total.toLocaleString()}</span>
                       <a
-                        href={`https://wa.me/${order.customer.phone.replace(/[^0-9]/g, '')}?text=Hi%20${order.customer.fullName}!%20Regarding%20your%20pi%C3%B1ata%20order%20${order.id}`}
+                        href={`https://wa.me/${(order.customer.phone || '').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi ${order.customer.fullName || 'Customer'}! Regarding your piñata order ${order.id}`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-3 py-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-lg flex items-center gap-1 transition-colors"
@@ -450,19 +455,63 @@ export const AdminDashboard = ({ navigate }) => {
                       <span className="text-gray-400">Estimated: </span>
                       <strong className="text-brand-pink font-extrabold">PKR {inq.estimatedPrice?.toLocaleString()}</strong>
                     </div>
-                    <a
-                      href={`https://wa.me/${inq.whatsapp?.replace(/[^0-9]/g, '')}?text=Hi%20${inq.customerName}!%20We%20reviewed%20your%20custom%20pi%C3%B1ata%20request%20(${inq.pinataType})%20for%20party%20date%20${inq.partyDate}.%20Our%20Lahore%20artisan%20is%20ready%20to%20begin!`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl flex items-center gap-1.5 transition-colors shadow-sm"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                      <span>WhatsApp Quick Reply</span>
-                    </a>
+                    {(() => {
+                      const msg = encodeURIComponent(
+                        `Hi ${inq.customerName || 'Customer'}! We reviewed your custom piñata request (${inq.pinataType}) for party date ${inq.partyDate || 'upcoming'}. Our Lahore artisan is ready to begin!`
+                      );
+                      const cleanPhone = (inq.whatsapp || '').replace(/[^0-9]/g, '');
+                      return (
+                        <a
+                          href={`https://wa.me/${cleanPhone}?text=${msg}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl flex items-center gap-1.5 transition-colors shadow-sm"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          <span>WhatsApp Quick Reply</span>
+                        </a>
+                      );
+                    })()}
                   </div>
                 </div>
               ))}
             </div>
+
+            {/* General Contact Form Inquiries */}
+            {contactInquiries && contactInquiries.length > 0 && (
+              <div className="mt-8 space-y-4">
+                <h3 className="font-bold text-gray-900 text-sm uppercase tracking-wide">
+                  Workshop Contact Inquiries ({contactInquiries.length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {contactInquiries.map((msg) => (
+                    <div key={msg.id} className="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm space-y-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-bold text-gray-900">{msg.name || 'Customer'}</h4>
+                          <span className="text-xs text-gray-500">{msg.phone}</span>
+                        </div>
+                        <span className="text-[10px] text-gray-400 font-mono">{msg.id}</span>
+                      </div>
+                      <p className="text-xs text-gray-600 bg-gray-50 p-3 rounded-xl italic">
+                        "{msg.message}"
+                      </p>
+                      <div className="pt-2 border-t border-gray-100 flex justify-end">
+                        <a
+                          href={`https://wa.me/${(msg.phone || '').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi ${msg.name || 'there'}! We received your workshop inquiry: "${msg.message}". How can we help?`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3.5 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-500 hover:text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span>WhatsApp Reply</span>
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

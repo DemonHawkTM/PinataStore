@@ -1,19 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
-import { Lock, KeyRound, ShieldAlert, Sparkles, ArrowRight } from 'lucide-react';
+import { Lock, ShieldAlert, ArrowRight, ShieldCheck, Clock } from 'lucide-react';
 
 export const AdminLoginPage = ({ navigate }) => {
   const { loginAdmin } = useStore();
   const [pin, setPin] = useState('');
-  const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockoutSeconds, setLockoutSeconds] = useState(0);
 
-  const handleLogin = (e) => {
+  // Rate Limiting Countdown
+  useEffect(() => {
+    let timer;
+    if (lockoutSeconds > 0) {
+      timer = setInterval(() => {
+        setLockoutSeconds(prev => {
+          if (prev <= 1) {
+            setFailedAttempts(0);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [lockoutSeconds]);
+
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const success = loginAdmin(pin.trim());
-    if (success) {
-      navigate('admin-dashboard');
-    } else {
-      setError(true);
+    if (lockoutSeconds > 0) return;
+
+    setIsLoading(true);
+    setErrorMessage('');
+
+    try {
+      const res = await loginAdmin(pin.trim());
+      if (res.success) {
+        navigate('admin-dashboard');
+      } else {
+        const nextAttempts = failedAttempts + 1;
+        setFailedAttempts(nextAttempts);
+        if (nextAttempts >= 5) {
+          setLockoutSeconds(60);
+          setErrorMessage('Too many failed attempts. Security lockout active for 60s.');
+        } else {
+          setErrorMessage(`Access Denied: Invalid passkey (${5 - nextAttempts} attempts remaining).`);
+        }
+      }
+    } catch (err) {
+      setErrorMessage('Authentication error. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -27,55 +65,55 @@ export const AdminLoginPage = ({ navigate }) => {
 
         <div>
           <span className="text-[11px] font-bold text-brand-teal uppercase tracking-widest">
-            Lahore Studio Back-Office
+            Lahore Studio Staff Access
           </span>
           <h1 className="text-2xl font-extrabold text-gray-900 mt-1">
-            Admin Authentication Gate
+            Studio Security Gate
           </h1>
           <p className="text-xs text-gray-500 mt-1">
-            Dedicated private portal for inventory, stock toggles & order syncing.
+            Authorized Lahore Studio personnel only. Access is cryptographically verified and logged.
           </p>
-        </div>
-
-        {/* Demo credentials hint */}
-        <div className="p-3 bg-pink-50 rounded-xl text-xs text-gray-600 border border-pink-100">
-          <p className="font-semibold text-brand-pink">Demo Access PIN:</p>
-          <code className="bg-white px-2 py-0.5 rounded font-mono font-bold text-gray-800 text-sm mt-0.5 inline-block">
-            1234
-          </code>
-          <span className="text-gray-400 text-[11px] block mt-0.5">(or admin123)</span>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <input
               type="password"
-              placeholder="Enter Admin PIN"
+              placeholder="Enter Master Passkey"
               value={pin}
+              disabled={lockoutSeconds > 0 || isLoading}
               onChange={(e) => {
                 setPin(e.target.value);
-                setError(false);
+                setErrorMessage('');
               }}
-              className="w-full text-center px-4 py-3 rounded-2xl border border-pink-200 text-lg font-mono tracking-widest focus:outline-none focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20"
+              className="w-full text-center px-4 py-3 rounded-2xl border border-pink-200 text-lg font-mono tracking-widest focus:outline-none focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 disabled:bg-gray-100 disabled:cursor-not-allowed"
               autoFocus
               required
             />
           </div>
 
-          {error && (
-            <div className="flex items-center justify-center gap-1.5 text-xs text-red-600 font-semibold">
-              <ShieldAlert className="w-4 h-4" />
-              <span>Invalid PIN. Please enter 1234 or admin123</span>
+          {errorMessage && (
+            <div className="flex items-center justify-center gap-1.5 text-xs text-red-600 font-semibold p-2.5 bg-red-50 rounded-xl">
+              <ShieldAlert className="w-4 h-4 shrink-0" />
+              <span>{errorMessage}</span>
             </div>
           )}
 
-          <button
-            type="submit"
-            className="w-full py-3.5 bg-gradient-to-r from-brand-pink to-pink-600 hover:from-brand-pinkHover hover:to-pink-700 text-white rounded-full font-bold text-sm shadow-brand flex items-center justify-center gap-2 transition-all transform active:scale-95"
-          >
-            <span>Unlock Admin Dashboard</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          {lockoutSeconds > 0 ? (
+            <div className="p-3 bg-amber-50 text-amber-800 rounded-xl text-xs font-semibold flex items-center justify-center gap-2">
+              <Clock className="w-4 h-4 text-amber-600 animate-spin" />
+              <span>Locked for {lockoutSeconds} seconds</span>
+            </div>
+          ) : (
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3.5 bg-gradient-to-r from-brand-pink to-pink-600 hover:from-brand-pinkHover hover:to-pink-700 disabled:opacity-50 text-white rounded-full font-bold text-sm shadow-brand flex items-center justify-center gap-2 transition-all transform active:scale-95"
+            >
+              <span>{isLoading ? 'Verifying...' : 'Authenticate & Unlock'}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
         </form>
 
         <button

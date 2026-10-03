@@ -135,6 +135,15 @@ export const recordProductView = (productId, productTitle = '') => {
   data.recentActivity = [activityItem, ...(data.recentActivity || [])].slice(0, 40);
 
   saveAnalyticsData(data);
+
+  // Dispatch to Google Analytics (GA4) if present
+  if (typeof window !== 'undefined' && window.gtag) {
+    try {
+      window.gtag('event', 'view_item', {
+        items: [{ item_id: productId, item_name: productTitle || productId }]
+      });
+    } catch (_) {}
+  }
 };
 
 // 3. Record Interaction Event (WhatsApp, Add-to-cart, Order)
@@ -160,6 +169,16 @@ export const recordAnalyticsEvent = (eventType, label = '') => {
   data.recentActivity = [activityItem, ...(data.recentActivity || [])].slice(0, 40);
 
   saveAnalyticsData(data);
+
+  // Dispatch to Google Analytics (GA4) if present
+  if (typeof window !== 'undefined' && window.gtag) {
+    try {
+      window.gtag('event', eventType, {
+        event_category: 'engagement',
+        event_label: label
+      });
+    } catch (_) {}
+  }
 };
 
 // 4. Reset Analytics Data

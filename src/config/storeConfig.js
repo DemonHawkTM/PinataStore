@@ -23,9 +23,8 @@ export const STORE_CONFIG = {
   // URLs & Integrations
   websiteUrl: "https://demonhawktm.github.io/PinataStore/",
   
-  // Google Analytics 4 (GA4) Measurement ID (e.g., "G-XXXXXXXXXX")
-  // Paste your Measurement ID here to automatically activate Google Analytics tracking
-  googleAnalyticsId: ""
+  // Google Analytics 4 (GA4) Measurement ID
+  googleAnalyticsId: "G-99M8DR6WV8"
 };
 
 export const getWhatsAppUrl = (customText = "") => {

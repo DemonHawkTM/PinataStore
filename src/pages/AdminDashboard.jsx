@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
 import { CATEGORIES } from '../data/products';
 import { compressImage } from '../utils/security';
+import { getAnalyticsData, resetAnalyticsData } from '../utils/analytics';
+import { STORE_CONFIG } from '../config/storeConfig';
 import { 
   Package, 
   ShoppingBag, 
@@ -20,7 +22,19 @@ import {
   Upload, 
   Calendar,
   CheckCircle2,
-  DollarSign
+  DollarSign,
+  BarChart3,
+  TrendingUp,
+  Users,
+  MousePointer,
+  Download,
+  Copy,
+  FileCode,
+  Tag,
+  Percent,
+  Smartphone,
+  Monitor,
+  RefreshCw
 } from 'lucide-react';
 
 export const AdminDashboard = ({ navigate }) => {
@@ -38,17 +52,47 @@ export const AdminDashboard = ({ navigate }) => {
     contactInquiries
   } = useStore();
 
-  const [activeTab, setActiveTab] = useState('products'); // products, orders, inquiries
+  const [activeTab, setActiveTab] = useState('products'); // products, orders, inquiries, analytics
   const [showAddModal, setShowAddModal] = useState(false);
+
+  // Edit Product Modal State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editCategory, setEditCategory] = useState('3d');
+  const [editPrice, setEditPrice] = useState('');
+  const [editOriginalPrice, setEditOriginalPrice] = useState('');
+  const [editDimensions, setEditDimensions] = useState('50cm x 40cm x 15cm');
+  const [editBadge, setEditBadge] = useState('None');
+  const [editImage, setEditImage] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editInStock, setEditInStock] = useState(true);
 
   // New Product Form State
   const [newTitle, setNewTitle] = useState('');
   const [newCategory, setNewCategory] = useState('3d');
   const [newPrice, setNewPrice] = useState('');
+  const [newOriginalPrice, setNewOriginalPrice] = useState('');
   const [newDimensions, setNewDimensions] = useState('50cm x 40cm x 15cm');
-  const [newBadge, setNewBadge] = useState('New');
+  const [newBadge, setNewBadge] = useState('None');
   const [newImage, setNewImage] = useState('');
   const [newDesc, setNewDesc] = useState('');
+
+  // Permanent Catalog Export State
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+
+  // Analytics State
+  const [analyticsData, setAnalyticsData] = useState(() => getAnalyticsData());
+  const refreshAnalytics = () => {
+    setAnalyticsData(getAnalyticsData());
+  };
+
+  useEffect(() => {
+    if (activeTab === 'analytics') {
+      refreshAnalytics();
+    }
+  }, [activeTab]);
 
   if (!isAdmin) {
     return (
@@ -74,16 +118,19 @@ export const AdminDashboard = ({ navigate }) => {
     }
 
     const catObj = CATEGORIES.find(c => c.id === newCategory) || CATEGORIES[1];
+    const parsedPrice = parseInt(newPrice, 10);
+    const parsedOriginal = newOriginalPrice ? parseInt(newOriginalPrice, 10) : null;
 
     addProduct({
-      title: newTitle,
+      title: newTitle.trim(),
       slug: newTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       category: newCategory,
       categoryLabel: catObj.label,
       occasion: "birthday",
-      price: parseInt(newPrice, 10),
+      price: parsedPrice,
+      originalPrice: (parsedOriginal && parsedOriginal > parsedPrice) ? parsedOriginal : null,
       dimensions: newDimensions,
-      badge: newBadge,
+      badge: newBadge === 'None' ? '' : newBadge,
       image: newImage || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80",
       description: newDesc || "Artisanal custom piñata handcrafted in our Lahore studio."
     });
@@ -91,6 +138,7 @@ export const AdminDashboard = ({ navigate }) => {
     setShowAddModal(false);
     setNewTitle('');
     setNewPrice('');
+    setNewOriginalPrice('');
     setNewImage('');
     setNewDesc('');
   };
@@ -105,6 +153,84 @@ export const AdminDashboard = ({ navigate }) => {
         alert(err.message || 'Image processing failed');
       }
     }
+  };
+
+  const handleOpenEditModal = (product) => {
+    setEditingProduct(product);
+    setEditTitle(product.title || '');
+    setEditCategory(product.category || '3d');
+    setEditPrice(product.price ? product.price.toString() : '');
+    setEditOriginalPrice(product.originalPrice ? product.originalPrice.toString() : '');
+    setEditDimensions(product.dimensions || '50cm x 40cm x 15cm');
+    setEditBadge(product.badge || 'None');
+    setEditImage(product.image || '');
+    setEditDesc(product.description || '');
+    setEditInStock(product.inStock !== false);
+    setShowEditModal(true);
+  };
+
+  const handleSaveEditedProduct = (e) => {
+    e.preventDefault();
+    if (!editingProduct || !editTitle || !editPrice) {
+      alert("Please provide title and price");
+      return;
+    }
+
+    const catObj = CATEGORIES.find(c => c.id === editCategory) || CATEGORIES[1];
+    const parsedPrice = parseInt(editPrice, 10);
+    const parsedOriginal = editOriginalPrice ? parseInt(editOriginalPrice, 10) : null;
+
+    updateProduct(editingProduct.id, {
+      title: editTitle.trim(),
+      category: editCategory,
+      categoryLabel: catObj.label,
+      price: parsedPrice,
+      originalPrice: (parsedOriginal && parsedOriginal > parsedPrice) ? parsedOriginal : null,
+      dimensions: editDimensions,
+      badge: editBadge === 'None' ? '' : editBadge,
+      image: editImage || editingProduct.image,
+      description: editDesc,
+      inStock: editInStock
+    });
+
+    setShowEditModal(false);
+    setEditingProduct(null);
+  };
+
+  const handleEditImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        const compressed = await compressImage(file, 600, 600, 0.75);
+        setEditImage(compressed);
+      } catch (err) {
+        alert(err.message || 'Image processing failed');
+      }
+    }
+  };
+
+  const generateProductsJsCode = () => {
+    return `export const INITIAL_PRODUCTS = ${JSON.stringify(products, null, 2)};\n`;
+  };
+
+  const handleCopyCatalog = () => {
+    const code = generateProductsJsCode();
+    navigator.clipboard.writeText(code);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 3000);
+  };
+
+  const handleDownloadProductsJs = () => {
+    const code = generateProductsJsCode();
+    const blob = new Blob([code], { type: 'text/javascript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'products.js';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const outOfStockCount = products.filter(p => !p.inStock).length;
@@ -181,10 +307,10 @@ export const AdminDashboard = ({ navigate }) => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-gray-200">
+        <div className="flex border-b border-gray-200 overflow-x-auto">
           <button
             onClick={() => setActiveTab('products')}
-            className={`py-3 px-6 text-xs sm:text-sm font-bold border-b-2 transition-all ${
+            className={`py-3 px-5 text-xs sm:text-sm font-bold border-b-2 whitespace-nowrap transition-all ${
               activeTab === 'products'
                 ? 'border-brand-pink text-brand-pink bg-white rounded-t-xl'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -194,7 +320,7 @@ export const AdminDashboard = ({ navigate }) => {
           </button>
           <button
             onClick={() => setActiveTab('orders')}
-            className={`py-3 px-6 text-xs sm:text-sm font-bold border-b-2 transition-all ${
+            className={`py-3 px-5 text-xs sm:text-sm font-bold border-b-2 whitespace-nowrap transition-all ${
               activeTab === 'orders'
                 ? 'border-brand-pink text-brand-pink bg-white rounded-t-xl'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -204,7 +330,7 @@ export const AdminDashboard = ({ navigate }) => {
           </button>
           <button
             onClick={() => setActiveTab('inquiries')}
-            className={`py-3 px-6 text-xs sm:text-sm font-bold border-b-2 transition-all ${
+            className={`py-3 px-5 text-xs sm:text-sm font-bold border-b-2 whitespace-nowrap transition-all ${
               activeTab === 'inquiries'
                 ? 'border-brand-pink text-brand-pink bg-white rounded-t-xl'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -212,23 +338,47 @@ export const AdminDashboard = ({ navigate }) => {
           >
             Custom Quotes & Photos ({customInquiries.length})
           </button>
+          <button
+            onClick={() => {
+              setActiveTab('analytics');
+              refreshAnalytics();
+            }}
+            className={`py-3 px-5 text-xs sm:text-sm font-bold border-b-2 whitespace-nowrap transition-all flex items-center gap-1.5 ${
+              activeTab === 'analytics'
+                ? 'border-brand-pink text-brand-pink bg-white rounded-t-xl'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4" />
+            <span>Traffic & Visitor Analytics</span>
+          </button>
         </div>
 
         {/* TAB 1: PRODUCT CATALOG & STOCK CONTROLS */}
         {activeTab === 'products' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h2 className="text-base font-bold text-gray-900">Live Inventory List</h2>
-                <p className="text-xs text-gray-500">Toggle stock states, add new piñatas, or adjust prices.</p>
+                <p className="text-xs text-gray-500">Edit products, put items on sale, toggle stock states, or export code.</p>
               </div>
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="px-5 py-2.5 bg-brand-pink hover:bg-brand-pinkHover text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow-md transition-all"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add New Piñata</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowExportModal(true)}
+                  className="px-3.5 py-2.5 bg-white hover:bg-pink-50 text-gray-700 hover:text-brand-pink border border-pink-200 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition-all"
+                  title="Make product additions & edits permanently visible to incognito & all devices"
+                >
+                  <FileCode className="w-4 h-4 text-brand-pink" />
+                  <span>Permanent Deploy / Export</span>
+                </button>
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="px-4 py-2.5 bg-brand-pink hover:bg-brand-pinkHover text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-md transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add New Piñata</span>
+                </button>
+              </div>
             </div>
 
             <div className="bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-sm">
@@ -264,11 +414,23 @@ export const AdminDashboard = ({ navigate }) => {
                           </span>
                         </td>
 
-                        {/* Price */}
+                        {/* Price & Sale Status */}
                         <td className="py-3 px-4">
-                          <span className="font-extrabold text-brand-pink text-xs">
-                            PKR {item.price.toLocaleString()}
-                          </span>
+                          <div className="flex flex-col">
+                            <span className="font-extrabold text-brand-pink text-xs">
+                              PKR {item.price.toLocaleString()}
+                            </span>
+                            {item.originalPrice && item.originalPrice > item.price ? (
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <span className="text-[10px] text-gray-400 line-through">
+                                  PKR {item.originalPrice.toLocaleString()}
+                                </span>
+                                <span className="text-[9px] font-bold text-red-600 bg-red-50 px-1 py-0.2 rounded">
+                                  {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}% OFF
+                                </span>
+                              </div>
+                            ) : null}
+                          </div>
                         </td>
 
                         {/* 1-Click Stock Toggle */}
@@ -290,7 +452,11 @@ export const AdminDashboard = ({ navigate }) => {
                         {/* Badge */}
                         <td className="py-3 px-4">
                           {item.badge ? (
-                            <span className="bg-pink-100 text-brand-pink text-[10px] font-bold px-2 py-0.5 rounded-full">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              item.badge === 'Sale' ? 'bg-red-100 text-red-700' :
+                              item.badge === 'Bestseller' ? 'bg-pink-100 text-brand-pink' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
                               {item.badge}
                             </span>
                           ) : (
@@ -300,13 +466,22 @@ export const AdminDashboard = ({ navigate }) => {
 
                         {/* Actions */}
                         <td className="py-3 px-4 text-right">
-                          <button
-                            onClick={() => deleteProduct(item.id)}
-                            className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => handleOpenEditModal(item)}
+                              className="p-1.5 text-gray-500 hover:text-brand-pink rounded-lg hover:bg-pink-50 transition-colors"
+                              title="Edit product, sale price, or details"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => deleteProduct(item.id)}
+                              className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"
+                              title="Delete design"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
 
                       </tr>
@@ -531,6 +706,261 @@ export const AdminDashboard = ({ navigate }) => {
           </div>
         )}
 
+        {/* TAB 4: TRAFFIC & VISITOR ANALYTICS */}
+        {activeTab === 'analytics' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-brand-pink" />
+                  <span>Store Traffic & Engagement Intelligence</span>
+                </h2>
+                <p className="text-xs text-gray-500">Live visitor telemetry, page impressions, most popular piñatas, and conversion rates.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={refreshAnalytics}
+                  className="px-3.5 py-2 bg-white hover:bg-pink-50 text-gray-700 hover:text-brand-pink border border-pink-200 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition-all"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Refresh Data</span>
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm("Reset all test analytics data to zero?")) {
+                      resetAnalyticsData();
+                      refreshAnalytics();
+                    }
+                  }}
+                  className="px-3 py-2 text-xs font-bold text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                >
+                  Reset Telemetry
+                </button>
+              </div>
+            </div>
+
+            {/* 5 KPI Metric Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
+              <div className="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm">
+                <div className="flex items-center justify-between text-gray-400 mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Page Views</span>
+                  <Eye className="w-4 h-4 text-brand-pink" />
+                </div>
+                <div className="text-2xl sm:text-3xl font-extrabold text-gray-900">{analyticsData.totalPageViews || 0}</div>
+                <p className="text-[11px] text-gray-400 mt-1">Total route impressions</p>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm">
+                <div className="flex items-center justify-between text-gray-400 mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Unique Visitors</span>
+                  <Users className="w-4 h-4 text-brand-teal" />
+                </div>
+                <div className="text-2xl sm:text-3xl font-extrabold text-gray-900">{analyticsData.uniqueVisitors?.length || 0}</div>
+                <p className="text-[11px] text-gray-400 mt-1">Distinct user browser sessions</p>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm">
+                <div className="flex items-center justify-between text-gray-400 mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Cart Additions</span>
+                  <ShoppingBag className="w-4 h-4 text-purple-500" />
+                </div>
+                <div className="text-2xl sm:text-3xl font-extrabold text-gray-900">{analyticsData.events?.addToCart || 0}</div>
+                <p className="text-[11px] text-gray-400 mt-1">Add to cart clicks</p>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm">
+                <div className="flex items-center justify-between text-gray-400 mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-500">WhatsApp Leads</span>
+                  <MessageCircle className="w-4 h-4 text-emerald-500" />
+                </div>
+                <div className="text-2xl sm:text-3xl font-extrabold text-emerald-600">{analyticsData.events?.whatsappInquiry || 0}</div>
+                <p className="text-[11px] text-gray-400 mt-1">Direct inquiries opened</p>
+              </div>
+
+              <div className="col-span-2 lg:col-span-1 bg-white p-5 rounded-2xl border border-pink-100 shadow-sm">
+                <div className="flex items-center justify-between text-gray-400 mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Conversion Rate</span>
+                  <TrendingUp className="w-4 h-4 text-brand-pink" />
+                </div>
+                <div className="text-2xl sm:text-3xl font-extrabold text-brand-pink">
+                  {analyticsData.uniqueVisitors?.length > 0
+                    ? `${Math.min(100, Math.round(((analyticsData.events?.whatsappInquiry || 0) + (orders.length || 0)) / analyticsData.uniqueVisitors.length * 100))}%`
+                    : '0%'}
+                </div>
+                <p className="text-[11px] text-gray-400 mt-1">Visitors ➔ WhatsApp / Order</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              
+              {/* Left Column: Popular Pages & Device Breakdown */}
+              <div className="lg:col-span-6 space-y-6">
+                
+                {/* Route Breakdown */}
+                <div className="bg-white p-6 rounded-3xl border border-pink-100 shadow-sm space-y-4">
+                  <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
+                    <MousePointer className="w-4 h-4 text-brand-pink" />
+                    <span>Most Visited Storefront Pages</span>
+                  </h3>
+                  <div className="space-y-3 text-xs">
+                    {[
+                      { label: 'Home Page (/)', count: analyticsData.pageViewsByRoute?.home || 0 },
+                      { label: 'Shop Catalog (/shop)', count: analyticsData.pageViewsByRoute?.shop || 0 },
+                      { label: 'Custom Studio (/customize)', count: analyticsData.pageViewsByRoute?.customize || 0 },
+                      { label: 'Order Tracking (/track)', count: analyticsData.pageViewsByRoute?.track || 0 },
+                      { label: 'Contact Workshop (/contact)', count: analyticsData.pageViewsByRoute?.contact || 0 },
+                      { label: 'Cart (/cart)', count: analyticsData.pageViewsByRoute?.cart || 0 },
+                      { label: 'Checkout (/checkout)', count: analyticsData.pageViewsByRoute?.checkout || 0 },
+                    ].map(route => {
+                      const maxViews = Math.max(1, analyticsData.totalPageViews || 1);
+                      const pct = Math.round((route.count / maxViews) * 100);
+                      return (
+                        <div key={route.label} className="space-y-1">
+                          <div className="flex justify-between font-medium">
+                            <span className="text-gray-700">{route.label}</span>
+                            <span className="text-gray-900 font-bold">{route.count} views ({pct}%)</span>
+                          </div>
+                          <div className="w-full h-2 bg-pink-50 rounded-full overflow-hidden">
+                            <div className="h-full bg-brand-pink rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Device Telemetry */}
+                <div className="bg-white p-6 rounded-3xl border border-pink-100 shadow-sm space-y-4">
+                  <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
+                    <Smartphone className="w-4 h-4 text-brand-teal" />
+                    <span>Device Distribution</span>
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4 text-center">
+                    <div className="p-4 bg-brand-pinkSubtle/50 rounded-2xl border border-pink-100">
+                      <Smartphone className="w-6 h-6 text-brand-pink mx-auto mb-1" />
+                      <p className="text-xs text-gray-600 font-semibold">Mobile Visitors</p>
+                      <p className="text-xl font-extrabold text-gray-900 mt-0.5">{analyticsData.deviceTypes?.mobile || 0}</p>
+                    </div>
+                    <div className="p-4 bg-brand-pinkSubtle/50 rounded-2xl border border-pink-100">
+                      <Monitor className="w-6 h-6 text-brand-teal mx-auto mb-1" />
+                      <p className="text-xs text-gray-600 font-semibold">Desktop Visitors</p>
+                      <p className="text-xl font-extrabold text-gray-900 mt-0.5">{analyticsData.deviceTypes?.desktop || 0}</p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Right Column: Top Viewed Piñatas & GA4 Configuration */}
+              <div className="lg:col-span-6 space-y-6">
+                
+                {/* Most Popular Piñatas */}
+                <div className="bg-white p-6 rounded-3xl border border-pink-100 shadow-sm space-y-4">
+                  <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    <span>Top Piñatas by Customer Interest</span>
+                  </h3>
+                  {Object.keys(analyticsData.productViews || {}).length === 0 ? (
+                    <p className="text-xs text-gray-400 py-4 text-center">No individual piñata views recorded yet. Product clicks in the catalog will appear here.</p>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {Object.entries(analyticsData.productViews || {})
+                        .sort(([, a], [, b]) => (b.count || 0) - (a.count || 0))
+                        .slice(0, 6)
+                        .map(([id, info], idx) => {
+                          const matchedProduct = products.find(p => p.id === id);
+                          return (
+                            <div key={id} className="flex items-center gap-3 p-2.5 rounded-2xl bg-gray-50 border border-gray-100 text-xs">
+                              <span className="w-6 h-6 rounded-full bg-pink-100 text-brand-pink font-extrabold flex items-center justify-center shrink-0 text-[11px]">
+                                #{idx + 1}
+                              </span>
+                              {matchedProduct && (
+                                <img src={matchedProduct.image} alt={matchedProduct.title} className="w-10 h-10 object-cover rounded-xl shrink-0" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-gray-900 truncate">{info.title || id}</p>
+                                <p className="text-[10px] text-gray-400">ID: {id}</p>
+                              </div>
+                              <span className="font-extrabold text-brand-pink bg-pink-50 px-2.5 py-1 rounded-xl">
+                                {info.count} views
+                              </span>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Google Analytics 4 (GA4) Card */}
+                <div className="bg-gradient-to-br from-pink-50 to-white p-6 rounded-3xl border-2 border-brand-pink/20 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">📊</span>
+                      <h3 className="font-bold text-sm text-gray-900">Google Analytics 4 (GA4) Setup</h3>
+                    </div>
+                    {STORE_CONFIG.googleAnalyticsId ? (
+                      <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                        <span>Connected ({STORE_CONFIG.googleAnalyticsId})</span>
+                      </span>
+                    ) : (
+                      <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        Ready to Connect
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-600 leading-relaxed font-body">
+                    Want to track exact search keywords, Lahore city maps, bounce rates, and user retention in Google Analytics?
+                  </p>
+                  <div className="bg-white p-3.5 rounded-2xl border border-pink-100 text-xs text-gray-700 space-y-1.5 font-mono">
+                    <p className="text-gray-500 font-sans font-semibold text-[11px]">3-Step GA4 Setup:</p>
+                    <p>1. Go to <a href="https://analytics.google.com" target="_blank" rel="noopener noreferrer" className="text-brand-pink underline font-sans">analytics.google.com</a> and create a free web property.</p>
+                    <p>2. Copy your Measurement ID: <code className="bg-pink-50 text-brand-pink px-1 rounded">G-XXXXXXXXXX</code></p>
+                    <p>3. Paste it in <code className="bg-gray-100 px-1 rounded">src/config/storeConfig.js</code> under <code className="text-brand-teal">googleAnalyticsId</code>.</p>
+                  </div>
+                </div>
+
+                {/* Real-time Interaction Feed */}
+                <div className="bg-white p-6 rounded-3xl border border-pink-100 shadow-sm space-y-3 max-h-72 overflow-y-auto">
+                  <h3 className="font-bold text-sm text-gray-900 flex items-center justify-between">
+                    <span>Recent Activity Stream</span>
+                    <span className="text-[10px] text-gray-400 font-normal">Last 40 events</span>
+                  </h3>
+                  <div className="space-y-2 text-xs">
+                    {(analyticsData.recentActivity || []).length === 0 ? (
+                      <p className="text-gray-400 text-center py-4">No recent activity recorded yet.</p>
+                    ) : (
+                      analyticsData.recentActivity.map((act) => (
+                        <div key={act.id} className="flex items-center justify-between p-2 rounded-xl bg-gray-50 border border-gray-100 text-[11px]">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full ${
+                              act.type === 'whatsapp_inquiry' ? 'bg-emerald-500' :
+                              act.type === 'add_to_cart' ? 'bg-brand-pink' :
+                              act.type === 'product_view' ? 'bg-amber-500' : 'bg-brand-teal'
+                            }`} />
+                            <span className="font-bold text-gray-800 capitalize">
+                              {act.type.replace(/_/g, ' ')}
+                            </span>
+                            <span className="text-gray-500 truncate max-w-[150px]">
+                              {act.route || act.title || act.label || ''}
+                            </span>
+                          </div>
+                          <span className="text-gray-400 text-[10px] shrink-0">
+                            {new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+        )}
+
       </div>
 
       {/* ADD NEW PRODUCT MODAL */}
@@ -571,41 +1001,56 @@ export const AdminDashboard = ({ navigate }) => {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-bold text-gray-700 uppercase mb-1">Price (PKR) *</label>
+                  <label className="block font-bold text-gray-700 uppercase mb-1">Selling Price (PKR) *</label>
                   <input
                     type="number"
                     placeholder="3800"
                     value={newPrice}
                     onChange={(e) => setNewPrice(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-pink text-xs"
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-pink text-xs font-bold text-brand-pink"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-gray-700 uppercase mb-1">Dimensions & Lead Time</label>
+                <label className="block font-bold text-gray-700 uppercase mb-1">Regular / Original Price (PKR)</label>
                 <input
-                  type="text"
-                  placeholder="50cm x 40cm x 15cm"
-                  value={newDimensions}
-                  onChange={(e) => setNewDimensions(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs"
+                  type="number"
+                  placeholder="e.g. 4500 (Set higher than Selling Price to put on Sale)"
+                  value={newOriginalPrice}
+                  onChange={(e) => setNewOriginalPrice(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-pink text-xs"
                 />
+                <p className="text-[10px] text-gray-400 mt-0.5">Optional: Appears as strikethrough price with discount percentage badge</p>
               </div>
 
-              <div>
-                <label className="block font-bold text-gray-700 uppercase mb-1">Badge Flag</label>
-                <select
-                  value={newBadge}
-                  onChange={(e) => setNewBadge(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs bg-white"
-                >
-                  <option value="New">New</option>
-                  <option value="Bestseller">Bestseller</option>
-                  <option value="Popular">Popular</option>
-                  <option value="Viral">Viral</option>
-                </select>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-gray-700 uppercase mb-1">Dimensions</label>
+                  <input
+                    type="text"
+                    placeholder="50cm x 40cm x 15cm"
+                    value={newDimensions}
+                    onChange={(e) => setNewDimensions(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 uppercase mb-1">Badge Flag</label>
+                  <select
+                    value={newBadge}
+                    onChange={(e) => setNewBadge(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs bg-white"
+                  >
+                    <option value="None">None</option>
+                    <option value="Sale">Sale (Red Flag)</option>
+                    <option value="New">New</option>
+                    <option value="Bestseller">Bestseller</option>
+                    <option value="Popular">Popular</option>
+                    <option value="Viral">Viral</option>
+                  </select>
+                </div>
               </div>
 
               <div>
@@ -642,12 +1087,251 @@ export const AdminDashboard = ({ navigate }) => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-brand-pink text-white rounded-xl font-bold shadow-md"
+                  className="px-5 py-2 bg-brand-pink hover:bg-brand-pinkHover text-white rounded-xl font-bold shadow-md transition-colors"
                 >
                   Publish to Lahore Catalog
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT PRODUCT MODAL */}
+      {showEditModal && editingProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-pink-100 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-lg text-gray-900">Edit Piñata Design</h3>
+                <p className="text-[11px] text-gray-400">ID: {editingProduct.id}</p>
+              </div>
+              <button onClick={() => setShowEditModal(false)} className="p-1 text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditedProduct} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-gray-700 uppercase mb-1">Title *</label>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-pink text-xs"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-gray-700 uppercase mb-1">Category</label>
+                  <select
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs bg-white"
+                  >
+                    {CATEGORIES.filter(c => c.id !== 'all').map(c => (
+                      <option key={c.id} value={c.id}>{c.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 uppercase mb-1">Badge Flag</label>
+                  <select
+                    value={editBadge}
+                    onChange={(e) => setEditBadge(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs bg-white"
+                  >
+                    <option value="None">None</option>
+                    <option value="Sale">Sale (Red Flag)</option>
+                    <option value="Bestseller">Bestseller (Pink)</option>
+                    <option value="Popular">Popular (Teal)</option>
+                    <option value="Viral">Viral (Purple)</option>
+                    <option value="New">New</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Pricing & Sale Section */}
+              <div className="p-3.5 bg-brand-pinkSubtle/40 rounded-2xl border border-pink-100 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-gray-800 uppercase text-[11px] flex items-center gap-1.5">
+                    <Tag className="w-3.5 h-3.5 text-brand-pink" />
+                    <span>Price & Sale Configuration</span>
+                  </span>
+                  {parseInt(editOriginalPrice, 10) > parseInt(editPrice, 10) && (
+                    <span className="bg-red-500 text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full">
+                      {Math.round(((parseInt(editOriginalPrice, 10) - parseInt(editPrice, 10)) / parseInt(editOriginalPrice, 10)) * 100)}% DISCOUNT ACTIVE
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-gray-600 mb-1">
+                      Selling Price (PKR) *
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 3500"
+                      value={editPrice}
+                      onChange={(e) => setEditPrice(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-pink text-xs font-bold text-brand-pink bg-white"
+                      required
+                    />
+                    <p className="text-[10px] text-gray-400 mt-0.5">Price customer pays</p>
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-gray-600 mb-1">
+                      Original / Regular Price (PKR)
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 4200 (optional)"
+                      value={editOriginalPrice}
+                      onChange={(e) => setEditOriginalPrice(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-pink text-xs bg-white"
+                    />
+                    <p className="text-[10px] text-gray-400 mt-0.5">Appears with strikethrough</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-gray-700 uppercase mb-1">Dimensions</label>
+                  <input
+                    type="text"
+                    value={editDimensions}
+                    onChange={(e) => setEditDimensions(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 uppercase mb-1">Inventory State</label>
+                  <button
+                    type="button"
+                    onClick={() => setEditInStock(!editInStock)}
+                    className={`w-full py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors ${
+                      editInStock ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    <span className={`w-2 h-2 rounded-full ${editInStock ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                    <span>{editInStock ? 'In Stock (Available)' : 'Out of Stock'}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-gray-700 uppercase mb-1">Update Piñata Photo</label>
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={handleEditImageUpload}
+                  className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-pink-50 file:text-brand-pink hover:file:bg-pink-100"
+                />
+                {editImage && (
+                  <img src={editImage} alt="Current Preview" className="w-16 h-16 object-cover rounded-xl mt-2 border border-pink-100" />
+                )}
+              </div>
+
+              <div>
+                <label className="block font-bold text-gray-700 uppercase mb-1">Description</label>
+                <textarea
+                  rows="2"
+                  value={editDesc}
+                  onChange={(e) => setEditDesc(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs resize-none"
+                ></textarea>
+              </div>
+
+              <div className="pt-2 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-brand-pink hover:bg-brand-pinkHover text-white rounded-xl font-bold shadow-md transition-colors"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* PERMANENT CATALOG EXPORT / DEPLOY MODAL */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full border border-pink-100 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
+                  <FileCode className="w-5 h-5 text-brand-pink" />
+                  <span>Permanent Deploy / Catalog Release</span>
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Why products vanish in incognito & how to make your edits permanent across all devices.
+                </p>
+              </div>
+              <button onClick={() => setShowExportModal(false)} className="p-1 text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-900 space-y-1.5 leading-relaxed">
+              <strong className="block text-amber-950 font-bold">Why newly added products vanish in Incognito Mode:</strong>
+              <p>
+                GitHub Pages is a static frontend website without a backend database. When you add or edit products in the admin panel on your PC, they are saved locally in that browser's <code>localStorage</code>.
+              </p>
+              <p>
+                <strong>Incognito Mode</strong> creates an isolated temporary sandbox with zero access to your standard browser storage. Other visitors on their own smartphones also cannot see your PC's local storage.
+              </p>
+              <p>
+                To make your new designs and prices <strong>100% permanently live for everyone</strong>, the catalog must be saved to <code className="bg-amber-100 px-1 rounded font-bold">src/data/products.js</code> and deployed to GitHub!
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-gray-700">Updated Catalog Code ({products.length} products):</span>
+                <span className="text-gray-400">Ready for src/data/products.js</span>
+              </div>
+              <pre className="p-3 bg-gray-900 text-pink-300 rounded-2xl text-[11px] font-mono max-h-48 overflow-y-auto border border-gray-800">
+                {generateProductsJsCode()}
+              </pre>
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <span className="text-xs text-emerald-600 font-semibold">
+                {copiedCode ? '✓ Copied to clipboard!' : ''}
+              </span>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={handleDownloadProductsJs}
+                  className="flex-1 sm:flex-initial px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download products.js</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCopyCatalog}
+                  className="flex-1 sm:flex-initial px-5 py-2.5 bg-brand-pink hover:bg-brand-pinkHover text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-colors"
+                >
+                  <Copy className="w-4 h-4" />
+                  <span>{copiedCode ? 'Copied!' : 'Copy Code (1-Click)'}</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

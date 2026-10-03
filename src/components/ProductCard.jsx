@@ -1,15 +1,21 @@
 import React from 'react';
 import { Star, Heart, Plus, AlertCircle } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { recordAnalyticsEvent } from '../utils/analytics';
 
 export const ProductCard = ({ product }) => {
   const { addToCart, toggleWishlist, isInWishlist, setActiveProductModal } = useStore();
   const wishlisted = isInWishlist(product.id);
 
+  const discountPct = (product.originalPrice && product.originalPrice > product.price)
+    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+    : 0;
+
   const handleQuickAdd = (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (product.inStock) {
+      recordAnalyticsEvent('add_to_cart', product.title);
       addToCart(product, 1, { variant: "Normal (45-50cm) · Standard" });
     }
   };
@@ -17,6 +23,7 @@ export const ProductCard = ({ product }) => {
   const handleWishlistToggle = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    recordAnalyticsEvent('wishlist', product.title);
     toggleWishlist(product.id);
   };
 
@@ -42,18 +49,23 @@ export const ProductCard = ({ product }) => {
           className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${!product.inStock ? 'opacity-60 grayscale-[30%]' : ''}`}
         />
 
-        {/* Status Badge */}
+        {/* Status & Sale Badges */}
         {product.inStock ? (
-          product.badge && (
+          discountPct > 0 ? (
+            <span className="absolute top-3 left-3 text-[11px] font-extrabold px-2.5 py-1 rounded-full shadow-md bg-gradient-to-r from-red-500 to-pink-600 text-white tracking-wide">
+              {product.badge === 'Sale' ? `${discountPct}% OFF SALE` : `${discountPct}% OFF`}
+            </span>
+          ) : product.badge ? (
             <span className={`absolute top-3 left-3 text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm ${
               product.badge === 'Bestseller' ? 'bg-brand-pink text-white' :
               product.badge === 'Popular' ? 'bg-brand-teal text-white' :
               product.badge === 'Viral' ? 'bg-purple-600 text-white' :
+              product.badge === 'Sale' ? 'bg-red-500 text-white font-extrabold' :
               'bg-amber-500 text-white'
             }`}>
               {product.badge}
             </span>
-          )
+          ) : null
         ) : (
           <span className="absolute top-3 left-3 bg-gray-800 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
             <AlertCircle className="w-3 h-3 text-red-400" />
@@ -94,10 +106,15 @@ export const ProductCard = ({ product }) => {
       {/* Price & Action Row */}
       <div className="flex items-center justify-between pt-3 mt-1 border-t border-pink-50">
         <div>
-          <div className="text-sm sm:text-base font-extrabold text-brand-pink">
-            PKR {product.price.toLocaleString()}
+          <div className="text-sm sm:text-base font-extrabold text-brand-pink flex items-center gap-1.5">
+            <span>PKR {product.price.toLocaleString()}</span>
+            {discountPct > 0 && (
+              <span className="text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.2 rounded">
+                -{discountPct}%
+              </span>
+            )}
           </div>
-          {product.originalPrice && (
+          {product.originalPrice && product.originalPrice > product.price && (
             <div className="text-[11px] text-gray-400 line-through">
               PKR {product.originalPrice.toLocaleString()}
             </div>

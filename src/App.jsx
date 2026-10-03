@@ -18,6 +18,8 @@ import { WishlistPage } from './pages/WishlistPage';
 import { ContactPage } from './pages/ContactPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { recordPageView } from './utils/analytics';
+import { STORE_CONFIG } from './config/storeConfig';
 
 const getRouteFromUrl = () => {
   if (typeof window === 'undefined') return 'home';
@@ -51,6 +53,35 @@ function AppContent() {
       window.removeEventListener('hashchange', handleLocationChange);
     };
   }, []);
+
+  // Telemetry & Visitor Page View Tracking (Internal + GA4)
+  useEffect(() => {
+    recordPageView(currentRoute);
+
+    // If GA4 Measurement ID is provided in storeConfig
+    if (STORE_CONFIG.googleAnalyticsId && typeof window !== 'undefined') {
+      try {
+        if (!window.gtag) {
+          const script = document.createElement('script');
+          script.async = true;
+          script.src = `https://www.googletagmanager.com/gtag/js?id=${STORE_CONFIG.googleAnalyticsId}`;
+          document.head.appendChild(script);
+
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){window.dataLayer.push(arguments);}
+          window.gtag = gtag;
+          gtag('js', new Date());
+          gtag('config', STORE_CONFIG.googleAnalyticsId);
+        } else {
+          window.gtag('config', STORE_CONFIG.googleAnalyticsId, {
+            page_path: window.location.pathname + window.location.search
+          });
+        }
+      } catch (err) {
+        console.warn('GA4 init error:', err);
+      }
+    }
+  }, [currentRoute]);
 
   // Dedicated Product URL deep-linking (?product=...)
   useEffect(() => {

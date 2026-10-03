@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, Star, Heart, ShoppingBag, MessageCircle, Clock } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { getWhatsAppUrl } from '../config/storeConfig';
+import { recordProductView, recordAnalyticsEvent } from '../utils/analytics';
 
 export const ProductModal = () => {
   const { activeProductModal, setActiveProductModal, addToCart, toggleWishlist, isInWishlist } = useStore();
@@ -13,6 +14,7 @@ export const ProductModal = () => {
 
   useEffect(() => {
     if (activeProductModal) {
+      recordProductView(activeProductModal.id, activeProductModal.title);
       document.body.style.overflow = 'hidden';
       try {
         const url = new URL(window.location.href);
@@ -53,6 +55,7 @@ export const ProductModal = () => {
   if (includeBlindfold) calculatedUnitPrice += 250;
 
   const handleAddToCart = () => {
+    recordAnalyticsEvent('add_to_cart', product.title);
     const addons = [];
     if (includeStick) addons.push("Buster Stick");
     if (includeBlindfold) addons.push("Blindfold");
@@ -155,14 +158,19 @@ Please confirm availability for Lahore delivery.`;
             </div>
 
             {/* Dynamic Price */}
-            <div className="mt-3 flex items-baseline gap-2">
+            <div className="mt-3 flex items-baseline gap-2 flex-wrap">
               <span className="text-2xl font-extrabold text-brand-pink">
                 PKR {calculatedUnitPrice.toLocaleString()}
               </span>
-              {product.originalPrice && (
-                <span className="text-sm text-gray-400 line-through">
-                  PKR {(product.originalPrice + currentSizeObj.extra).toLocaleString()}
-                </span>
+              {product.originalPrice && product.originalPrice > product.price && (
+                <>
+                  <span className="text-sm text-gray-400 line-through">
+                    PKR {(product.originalPrice + currentSizeObj.extra).toLocaleString()}
+                  </span>
+                  <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+                    Save PKR {(product.originalPrice - product.price).toLocaleString()} ({Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF)
+                  </span>
+                </>
               )}
             </div>
 
@@ -261,6 +269,7 @@ Please confirm availability for Lahore delivery.`;
               href={getWhatsAppUrl(whatsappMessage)}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => recordAnalyticsEvent('whatsapp_inquiry', product.title)}
               className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm"
             >
               <MessageCircle className="w-4 h-4" />

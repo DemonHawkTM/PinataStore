@@ -20,8 +20,12 @@ export const STORE_CONFIG = {
   addressDisplay: "Gulberg III & DHA Delivery Hub, Lahore, Pakistan",
   operatingHours: "Mon – Sat: 10:00 AM – 8:00 PM",
   
-  // URLs
-  websiteUrl: "https://demonhawktm.github.io/PinataStore/"
+  // URLs & Integrations
+  websiteUrl: "https://demonhawktm.github.io/PinataStore/",
+  
+  // Google Analytics 4 (GA4) Measurement ID (e.g., "G-XXXXXXXXXX")
+  // Paste your Measurement ID here to automatically activate Google Analytics tracking
+  googleAnalyticsId: ""
 };
 
 export const getWhatsAppUrl = (customText = "") => {
